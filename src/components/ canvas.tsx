@@ -4,7 +4,7 @@ import Stylebar from "./Stylebar";
 import Toolbar from "./Toolbar";
 import { useTheme } from "./theme-provider";
 
-type ToolType = "rectangle" | "ellipse" | "line" | "text";
+type ToolType = "rectangle" | "ellipse" | "line" | "arrow" | "text";
 type Element = {
   tool: ToolType;
   x: number;
@@ -124,9 +124,36 @@ const Canvas = () => {
         case "line":
           roughCanvas.line(x, y, endX, endY, options);
           break;
+        case "arrow":
+          drawArrow(roughCanvas, x, y, endX, endY, options);
+          break;
       }
     });
   };
+
+  function drawArrow(rc: any, x1: number, y1: number, x2: number, y2: number, options: any) {
+    const headLength = 10
+    // Draw the main line
+    rc.line(x1, y1, x2, y2, options);
+  
+    // Calculate the angle of the line
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+  
+    // Calculate the points for the arrowhead
+    const arrowPoint1 = {
+      x: x2 - headLength * Math.cos(angle - Math.PI / 6),
+      y: y2 - headLength * Math.sin(angle - Math.PI / 6),
+    };
+  
+    const arrowPoint2 = {
+      x: x2 - headLength * Math.cos(angle + Math.PI / 6),
+      y: y2 - headLength * Math.sin(angle + Math.PI / 6),
+    };
+  
+    // Draw the arrowhead
+    rc.line(x2, y2, arrowPoint1.x, arrowPoint1.y, options);
+    rc.line(x2, y2, arrowPoint2.x, arrowPoint2.y, options);
+  }
 
   const clearCanvas = () => {
     setElements([]);

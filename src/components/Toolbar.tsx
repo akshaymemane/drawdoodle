@@ -24,7 +24,7 @@ const Toolbar = ({ setTool, clearCanvas }: { setTool: any; clearCanvas : any;}) 
       </button>
 
       <button
-        onClick={() => setTool("line")}
+        onClick={() => setTool("arrow")}
         className="bg-gray-500 px-4 py-2 text-white rounded"
       >
         <MoveRight />

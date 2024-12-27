@@ -36,7 +36,7 @@ const Toolbar = ({ setTool, clearCanvas }: { setTool: any; clearCanvas : any;}) 
       >
         <Trash2 />
       </button>
-
+      
       <ModeToggle />
     </div>
   );

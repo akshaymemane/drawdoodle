@@ -156,19 +156,19 @@ const Stylebar: React.FC<StylebarProps> = ({
         <div className="flex space-x-2">
           <button
             onClick={() => setFontFamily("handdrawn")}
-            className="p-2 border rounded hover:bg-gray-200"
+            className="p-3 border rounded hover:bg-gray-400 bg-gray-700"
           >
             <PencilLine size={20} />
           </button>
           <button
             onClick={() => setFontFamily("normal")}
-            className="p-2 border rounded hover:bg-gray-200"
+            className="p-3 border rounded hover:bg-gray-400 bg-gray-700"
           >
             <CaseSensitive size={20} />
           </button>
           <button
             onClick={() => setFontFamily("code")}
-            className="p-2 border rounded hover:bg-gray-200"
+            className="p-3 border rounded hover:bg-gray-400 bg-gray-700"
           >
             <Code size={20} />
           </button>
@@ -181,19 +181,19 @@ const Stylebar: React.FC<StylebarProps> = ({
         <div className="flex space-x-2">
           <button
             onClick={() => setFontSize("small")}
-            className="p-2 border rounded hover:bg-gray-200"
+            className="px-4 py-2 border rounded hover:bg-gray-400 bg-gray-700"
           >
             S
           </button>
           <button
             onClick={() => setFontSize("medium")}
-            className="p-2 border rounded hover:bg-gray-200"
+            className="px-4 py-2 border rounded hover:bg-gray-400 bg-gray-700"
           >
             M
           </button>
           <button
             onClick={() => setFontSize("large")}
-            className="p-2 border rounded hover:bg-gray-200"
+            className="px-4 py-2 border rounded hover:bg-gray-400 bg-gray-700"
           >
             L
           </button>
@@ -206,19 +206,19 @@ const Stylebar: React.FC<StylebarProps> = ({
         <div className="flex space-x-2">
           <button
             onClick={() => setTextAlignment("left")}
-            className="p-2 border rounded hover:bg-gray-200"
+            className="px-3 py-2 border rounded hover:bg-gray-400 bg-gray-700"
           >
             <AlignLeft size={20} />
           </button>
           <button
             onClick={() => setTextAlignment("center")}
-            className="p-2 border rounded hover:bg-gray-200"
+            className="px-3 py-2 border rounded hover:bg-gray-400 bg-gray-700"
           >
             <AlignCenter size={20} />
           </button>
           <button
             onClick={() => setTextAlignment("right")}
-            className="p-2 border rounded hover:bg-gray-200"
+            className="px-3 py-2 border rounded hover:bg-gray-400 bg-gray-700"
           >
             <AlignRight size={20} />
           </button>

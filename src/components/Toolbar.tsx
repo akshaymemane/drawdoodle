@@ -1,9 +1,28 @@
-import { Circle, Minus, MoveRight, Square, Trash2 } from "lucide-react";
+import {
+  Circle,
+  Minus,
+  MousePointer,
+  MoveRight,
+  Square,
+  Trash2,
+} from "lucide-react"; // Import Pointer icon
 import { ModeToggle } from "./mode-toggle";
 
-const Toolbar = ({ setTool, clearCanvas }: { setTool: any; clearCanvas : any;}) => {
+const Toolbar = ({
+  setTool,
+  clearCanvas,
+}: {
+  setTool: any;
+  clearCanvas: any;
+}) => {
   return (
-    <div className="flex justify-center items-center w-[400px] bg-gray-400 space-x-2 rounded p-2">
+    <div className="flex justify-center items-center w-[450px] bg-gray-400 space-x-2 rounded p-2">
+      <button
+        onClick={() => setTool("select")} // Set tool to "select"
+        className="bg-gray-500 px-4 py-2 text-white rounded"
+      >
+        <MousePointer />
+      </button>
       <button
         onClick={() => setTool("rectangle")}
         className="bg-gray-500 px-4 py-2 text-white rounded"
@@ -22,21 +41,18 @@ const Toolbar = ({ setTool, clearCanvas }: { setTool: any; clearCanvas : any;}) 
       >
         <Minus />
       </button>
-
       <button
         onClick={() => setTool("arrow")}
         className="bg-gray-500 px-4 py-2 text-white rounded"
       >
         <MoveRight />
       </button>
-
       <button
         onClick={() => clearCanvas()}
         className="bg-gray-500 px-4 py-2 text-white rounded"
       >
         <Trash2 />
       </button>
-      
       <ModeToggle />
     </div>
   );

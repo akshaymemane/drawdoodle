@@ -33,6 +33,8 @@ const Canvas = () => {
   const [fillStyle, setFillStyle] = useState<string>("none");
   const { theme } = useTheme();
 
+  const toolsWithSidebar = ["rectangle", "ellipse"]; // Tools that should trigger the sidebar
+
   useEffect(() => {
     setStroke(theme === "dark" ? "white" : "black");
   }, [theme]);
@@ -131,25 +133,32 @@ const Canvas = () => {
     });
   };
 
-  function drawArrow(rc: any, x1: number, y1: number, x2: number, y2: number, options: any) {
-    const headLength = 10
+  function drawArrow(
+    rc: any,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    options: any
+  ) {
+    const headLength = 10;
     // Draw the main line
     rc.line(x1, y1, x2, y2, options);
-  
+
     // Calculate the angle of the line
     const angle = Math.atan2(y2 - y1, x2 - x1);
-  
+
     // Calculate the points for the arrowhead
     const arrowPoint1 = {
       x: x2 - headLength * Math.cos(angle - Math.PI / 6),
       y: y2 - headLength * Math.sin(angle - Math.PI / 6),
     };
-  
+
     const arrowPoint2 = {
       x: x2 - headLength * Math.cos(angle + Math.PI / 6),
       y: y2 - headLength * Math.sin(angle + Math.PI / 6),
     };
-  
+
     // Draw the arrowhead
     rc.line(x2, y2, arrowPoint1.x, arrowPoint1.y, options);
     rc.line(x2, y2, arrowPoint2.x, arrowPoint2.y, options);
@@ -168,20 +177,22 @@ const Canvas = () => {
       <div className="flex justify-center items-center shadow-md p-4">
         <Toolbar setTool={setTool} clearCanvas={clearCanvas} />
       </div>
-      <div className="fixed top-0 left-0 translate-y-1/2 shadow-md p-4">
-        <Stylebar
-          stroke={stroke}
-          setStroke={setStroke}
-          strokeWidth={strokeWidth}
-          setStrokeWidth={setStrokeWidth}
-          strokeStyle={strokeStyle}
-          setStrokeStyle={setStrokeStyle}
-          backgroundColor={backgroundColor}
-          setBackgroundColor={setBackgroundColor}
-          fillStyle={fillStyle}
-          setFillStyle={setFillStyle}
-        />
-      </div>
+      {toolsWithSidebar.includes(tool) && (
+        <div className="fixed top-0 left-0 translate-y-1/2 shadow-md p-4">
+          <Stylebar
+            stroke={stroke}
+            setStroke={setStroke}
+            strokeWidth={strokeWidth}
+            setStrokeWidth={setStrokeWidth}
+            strokeStyle={strokeStyle}
+            setStrokeStyle={setStrokeStyle}
+            backgroundColor={backgroundColor}
+            setBackgroundColor={setBackgroundColor}
+            fillStyle={fillStyle}
+            setFillStyle={setFillStyle}
+          />
+        </div>
+      )}
       <div className="flex-grow overflow-auto">
         <canvas
           ref={canvasRef}

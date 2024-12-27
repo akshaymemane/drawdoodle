@@ -4,7 +4,7 @@ import Stylebar from "./Stylebar";
 import Toolbar from "./Toolbar";
 import { useTheme } from "./theme-provider";
 
-type ToolType = "rectangle" | "ellipse" | "line" | "arrow" | "text";
+type ToolType = "rectangle" | "ellipse" | "line" | "arrow" | "text" | "pen";
 type Element = {
   tool: ToolType;
   x: number;
@@ -18,6 +18,7 @@ type Element = {
   strokeStyle: string;
   backgroundColor: string;
   fillStyle: string;
+  penPath?: { x: number; y: number }[]; // Add penPath for the Pen tool
 };
 
 const Canvas = () => {
@@ -31,9 +32,11 @@ const Canvas = () => {
   const [strokeStyle, setStrokeStyle] = useState<string>("solid");
   const [backgroundColor, setBackgroundColor] = useState<string>("#ffffff");
   const [fillStyle, setFillStyle] = useState<string>("none");
+  const [penPath, setPenPath] = useState<{ x: number; y: number }[]>([]);
+
   const { theme } = useTheme();
 
-  const toolsWithSidebar = ["rectangle", "ellipse"]; // Tools that should trigger the sidebar
+  const toolsWithSidebar = ["rectangle", "ellipse", "line", "arrow", "text"]; // Tools that should trigger the sidebar
 
   useEffect(() => {
     setStroke(theme === "dark" ? "white" : "black");
@@ -42,34 +45,68 @@ const Canvas = () => {
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     setDrawing(true);
     const { offsetX, offsetY } = event.nativeEvent;
-    setCurrentElement({
-      tool,
-      x: offsetX,
-      y: offsetY,
-      endX: offsetX,
-      endY: offsetY,
-      width: 0,
-      height: 0,
-      stroke,
-      strokeWidth,
-      strokeStyle,
-      backgroundColor,
-      fillStyle,
-    });
+
+    if (tool === "pen") {
+      // Start a new pen path if the tool is "pen"
+      setCurrentElement({
+        tool,
+        x: offsetX,
+        y: offsetY,
+        endX: offsetX,
+        endY: offsetY,
+        width: 0,
+        height: 0,
+        stroke,
+        strokeWidth,
+        strokeStyle,
+        backgroundColor,
+        fillStyle,
+        penPath: [{ x: offsetX, y: offsetY }], // Start the pen path
+      });
+    } else {
+      setCurrentElement({
+        tool,
+        x: offsetX,
+        y: offsetY,
+        endX: offsetX,
+        endY: offsetY,
+        width: 0,
+        height: 0,
+        stroke,
+        strokeWidth,
+        strokeStyle,
+        backgroundColor,
+        fillStyle,
+      });
+    }
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!drawing || !currentElement) return;
     const { offsetX, offsetY } = event.nativeEvent;
-    const width = offsetX - currentElement.x;
-    const height = offsetY - currentElement.y;
-    setCurrentElement({
-      ...currentElement,
-      endX: offsetX,
-      endY: offsetY,
-      width,
-      height,
-    });
+
+    if (tool === "pen") {
+      // If drawing with the pen tool, add points to the penPath
+      setCurrentElement({
+        ...currentElement,
+        endX: offsetX,
+        endY: offsetY,
+        penPath: [
+          ...currentElement.penPath!,
+          { x: offsetX, y: offsetY }, // Add new point to penPath
+        ],
+      });
+    } else {
+      const width = offsetX - currentElement.x;
+      const height = offsetY - currentElement.y;
+      setCurrentElement({
+        ...currentElement,
+        endX: offsetX,
+        endY: offsetY,
+        width,
+        height,
+      });
+    }
   };
 
   const handleMouseUp = () => {
@@ -103,6 +140,7 @@ const Canvas = () => {
         stroke,
         strokeWidth,
         fillStyle,
+        penPath, // Extract penPath
       } = element;
       const options = {
         stroke,
@@ -128,6 +166,23 @@ const Canvas = () => {
           break;
         case "arrow":
           drawArrow(roughCanvas, x, y, endX, endY, options);
+          break;
+        case "pen":
+          if (penPath) {
+            // Draw the pen path as a series of lines
+            penPath.forEach((point, index) => {
+              if (index > 0) {
+                const prevPoint = penPath[index - 1];
+                roughCanvas.line(
+                  prevPoint.x,
+                  prevPoint.y,
+                  point.x,
+                  point.y,
+                  options
+                );
+              }
+            });
+          }
           break;
       }
     });

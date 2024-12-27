@@ -1,3 +1,11 @@
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  CaseSensitive,
+  Code,
+  PencilLine,
+} from "lucide-react";
 import React from "react";
 
 interface StylebarProps {
@@ -11,6 +19,12 @@ interface StylebarProps {
   setBackgroundColor: (value: string) => void;
   fillStyle: string;
   setFillStyle: (value: string) => void;
+  fontFamily: "handdrawn" | "normal" | "code";
+  setFontFamily: (value: "handdrawn" | "normal" | "code") => void;
+  fontSize: "small" | "medium" | "large";
+  setFontSize: (value: "small" | "medium" | "large") => void;
+  textAlignment: "left" | "center" | "right";
+  setTextAlignment: (value: "left" | "center" | "right") => void;
 }
 
 const Stylebar: React.FC<StylebarProps> = ({
@@ -24,6 +38,12 @@ const Stylebar: React.FC<StylebarProps> = ({
   setBackgroundColor,
   fillStyle,
   setFillStyle,
+  fontFamily,
+  setFontFamily,
+  fontSize,
+  setFontSize,
+  textAlignment,
+  setTextAlignment,
 }) => {
   return (
     <div className="p-4 bg-gray-800 text-white rounded-lg shadow-md space-y-4">
@@ -117,6 +137,81 @@ const Stylebar: React.FC<StylebarProps> = ({
               {style === "solid" ? "—" : style === "dashed" ? "- -" : "···"}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Font Family Section */}
+      <div>
+        <h3 className="text-sm font-bold mb-2">Font Family</h3>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setFontFamily("handdrawn")}
+            className="p-2 border rounded hover:bg-gray-200"
+          >
+            <PencilLine size={20} />
+          </button>
+          <button
+            onClick={() => setFontFamily("normal")}
+            className="p-2 border rounded hover:bg-gray-200"
+          >
+            <CaseSensitive size={20} />
+          </button>
+          <button
+            onClick={() => setFontFamily("code")}
+            className="p-2 border rounded hover:bg-gray-200"
+          >
+            <Code size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* Font Size Section */}
+      <div>
+        <h3 className="text-sm font-bold mb-2">Font Size</h3>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setFontSize("small")}
+            className="p-2 border rounded hover:bg-gray-200"
+          >
+            S
+          </button>
+          <button
+            onClick={() => setFontSize("medium")}
+            className="p-2 border rounded hover:bg-gray-200"
+          >
+            M
+          </button>
+          <button
+            onClick={() => setFontSize("large")}
+            className="p-2 border rounded hover:bg-gray-200"
+          >
+            L
+          </button>
+        </div>
+      </div>
+
+      {/* Text Alignment Section */}
+      <div>
+        <h3 className="text-sm font-bold mb-2">Text Align</h3>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setTextAlignment("left")}
+            className="p-2 border rounded hover:bg-gray-200"
+          >
+            <AlignLeft size={20} />
+          </button>
+          <button
+            onClick={() => setTextAlignment("center")}
+            className="p-2 border rounded hover:bg-gray-200"
+          >
+            <AlignCenter size={20} />
+          </button>
+          <button
+            onClick={() => setTextAlignment("right")}
+            className="p-2 border rounded hover:bg-gray-200"
+          >
+            <AlignRight size={20} />
+          </button>
         </div>
       </div>
 

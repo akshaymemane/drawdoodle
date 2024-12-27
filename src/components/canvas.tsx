@@ -3,9 +3,11 @@ import rough from "roughjs/bin/rough";
 import Stylebar from "./Stylebar";
 import Toolbar from "./Toolbar";
 import { useTheme } from "./theme-provider";
+import useWebSocket from "./websocket";
 
 type ToolType = "rectangle" | "ellipse" | "line" | "arrow" | "text" | "pen";
 type Element = {
+  id: string;
   tool: ToolType;
   x: number;
   y: number;
@@ -18,7 +20,13 @@ type Element = {
   strokeStyle: string;
   backgroundColor: string;
   fillStyle: string;
-  penPath?: { x: number; y: number }[]; // Add penPath for the Pen tool
+  penPath?: { x: number; y: number }[];
+};
+
+type Cursor = {
+  id: string;
+  x: number;
+  y: number;
 };
 
 const Canvas = () => {
@@ -33,22 +41,72 @@ const Canvas = () => {
   const [backgroundColor, setBackgroundColor] = useState<string>("#ffffff");
   const [fillStyle, setFillStyle] = useState<string>("none");
   const [penPath, setPenPath] = useState<{ x: number; y: number }[]>([]);
+  const [cursors, setCursors] = useState<Cursor[]>([]); // State to store cursor positions
+
+  const { sendMessage, lastMessage } = useWebSocket();
 
   const { theme } = useTheme();
 
-  const toolsWithSidebar = ["rectangle", "ellipse", "line", "arrow", "text"]; // Tools that should trigger the sidebar
+  const toolsWithSidebar = ["rectangle", "ellipse", "line", "arrow", "text"];
 
   useEffect(() => {
     setStroke(theme === "dark" ? "white" : "black");
   }, [theme]);
 
+  const data = {
+    id: "61b411ba-ec6a-45b6-8b94-facd79173a11",
+    tool: "rectangle",
+    x: 574,
+    y: 512,
+    endX: 849,
+    endY: 696,
+    width: 275,
+    height: 184,
+    stroke: "white",
+    strokeWidth: 2,
+    strokeStyle: "solid",
+    backgroundColor: "#ffffff",
+    fillStyle: "none",
+  };
+
+  useEffect(() => {
+    if (lastMessage) {
+      let receivedData = lastMessage;
+
+      // Handle element data
+      if (receivedData.tool) {
+        setElements((prev) => [...prev, receivedData]);
+      }
+
+      // Handle cursor data
+      if (receivedData.type === "cursor") {
+        // Update or add cursor position to state
+        setCursors((prevCursors) => {
+          const existingCursor = prevCursors.find(
+            (cursor) => cursor.id === receivedData.id
+          );
+          if (existingCursor) {
+            return prevCursors.map((cursor) =>
+              cursor.id === receivedData.id
+                ? { ...cursor, x: receivedData.x, y: receivedData.y }
+                : cursor
+            );
+          } else {
+            return [...prevCursors, receivedData];
+          }
+        });
+      }
+    }
+  }, [lastMessage]);
+
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     setDrawing(true);
     const { offsetX, offsetY } = event.nativeEvent;
+    const id = crypto.randomUUID(); // Generate unique ID for the element
 
     if (tool === "pen") {
-      // Start a new pen path if the tool is "pen"
       setCurrentElement({
+        id,
         tool,
         x: offsetX,
         y: offsetY,
@@ -61,10 +119,11 @@ const Canvas = () => {
         strokeStyle,
         backgroundColor,
         fillStyle,
-        penPath: [{ x: offsetX, y: offsetY }], // Start the pen path
+        penPath: [{ x: offsetX, y: offsetY }],
       });
     } else {
       setCurrentElement({
+        id,
         tool,
         x: offsetX,
         y: offsetY,
@@ -85,16 +144,22 @@ const Canvas = () => {
     if (!drawing || !currentElement) return;
     const { offsetX, offsetY } = event.nativeEvent;
 
+    // Update cursor position to the server
+    sendMessage(
+      JSON.stringify({
+        type: "cursor",
+        id: "your-client-id", // Use unique ID for each client
+        x: offsetX,
+        y: offsetY,
+      })
+    );
+
     if (tool === "pen") {
-      // If drawing with the pen tool, add points to the penPath
       setCurrentElement({
         ...currentElement,
         endX: offsetX,
         endY: offsetY,
-        penPath: [
-          ...currentElement.penPath!,
-          { x: offsetX, y: offsetY }, // Add new point to penPath
-        ],
+        penPath: [...currentElement.penPath!, { x: offsetX, y: offsetY }],
       });
     } else {
       const width = offsetX - currentElement.x;
@@ -112,6 +177,7 @@ const Canvas = () => {
   const handleMouseUp = () => {
     if (currentElement) {
       setElements((prev) => [...prev, currentElement]);
+      sendMessage(JSON.stringify(currentElement)); // Send the new element to the server
     }
     setCurrentElement(null);
     setDrawing(false);
@@ -140,11 +206,12 @@ const Canvas = () => {
         stroke,
         strokeWidth,
         fillStyle,
-        penPath, // Extract penPath
+        penPath,
       } = element;
       const options = {
         stroke,
         strokeWidth,
+        fillStyle: "zigzag-line",
         fill: fillStyle !== "none" ? fillStyle : undefined,
       };
 
@@ -169,7 +236,6 @@ const Canvas = () => {
           break;
         case "pen":
           if (penPath) {
-            // Draw the pen path as a series of lines
             penPath.forEach((point, index) => {
               if (index > 0) {
                 const prevPoint = penPath[index - 1];
@@ -186,6 +252,14 @@ const Canvas = () => {
           break;
       }
     });
+
+    // Draw the cursors of all connected clients
+    cursors.forEach((cursor) => {
+      context.beginPath();
+      context.arc(cursor.x, cursor.y, 5, 0, Math.PI * 2);
+      context.fillStyle = "red"; // You can assign unique colors per cursor
+      context.fill();
+    });
   };
 
   function drawArrow(
@@ -197,35 +271,28 @@ const Canvas = () => {
     options: any
   ) {
     const headLength = 10;
-    // Draw the main line
     rc.line(x1, y1, x2, y2, options);
-
-    // Calculate the angle of the line
     const angle = Math.atan2(y2 - y1, x2 - x1);
-
-    // Calculate the points for the arrowhead
     const arrowPoint1 = {
       x: x2 - headLength * Math.cos(angle - Math.PI / 6),
       y: y2 - headLength * Math.sin(angle - Math.PI / 6),
     };
-
     const arrowPoint2 = {
       x: x2 - headLength * Math.cos(angle + Math.PI / 6),
       y: y2 - headLength * Math.sin(angle + Math.PI / 6),
     };
-
-    // Draw the arrowhead
     rc.line(x2, y2, arrowPoint1.x, arrowPoint1.y, options);
     rc.line(x2, y2, arrowPoint2.x, arrowPoint2.y, options);
   }
 
   const clearCanvas = () => {
     setElements([]);
+    sendMessage(JSON.stringify({ type: "clear" })); // Notify all clients to clear their canvases
   };
 
   useEffect(() => {
     redraw();
-  }, [elements, currentElement]);
+  }, [elements, currentElement, cursors]);
 
   return (
     <div className="h-screen flex flex-col">

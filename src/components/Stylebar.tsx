@@ -27,6 +27,16 @@ interface StylebarProps {
   setTextAlignment: (value: "left" | "center" | "right") => void;
 }
 
+const fillStyleOptions = [
+  "hachure",
+  "solid",
+  "zigzag",
+  "cross-hatch",
+  "dots",
+  "dashed",
+  "zigzag-line",
+];
+
 const Stylebar: React.FC<StylebarProps> = ({
   stroke,
   setStroke,
@@ -55,7 +65,7 @@ const Stylebar: React.FC<StylebarProps> = ({
             (color) => (
               <div
                 key={color}
-                className={`w-8 h-8 rounded-full cursor-pointer border ${
+                className={`w-8 h-8 cursor-pointer border ${
                   stroke === color ? "border-blue-500" : "border-transparent"
                 }`}
                 style={{ backgroundColor: color }}
@@ -74,7 +84,7 @@ const Stylebar: React.FC<StylebarProps> = ({
             (color) => (
               <div
                 key={color}
-                className={`w-8 h-8 rounded-full cursor-pointer border ${
+                className={`w-8 h-8 cursor-pointer border ${
                   backgroundColor === color
                     ? "border-blue-500"
                     : "border-transparent"
@@ -89,12 +99,12 @@ const Stylebar: React.FC<StylebarProps> = ({
 
       {/* Fill Section */}
       <div>
-        <h3 className="text-sm font-bold mb-2">Fill</h3>
+        <h3 className="text-sm font-bold mb-2">Fill Style</h3>
         <div className="flex space-x-2">
           {["none", "#9f7aea", "#e2e8f0"].map((color) => (
             <div
               key={color}
-              className={`w-8 h-8 rounded-full cursor-pointer border ${
+              className={`w-8 h-8 cursor-pointer border ${
                 fillStyle === color ? "border-blue-500" : "border-transparent"
               }`}
               style={{ backgroundColor: color }}
@@ -134,7 +144,7 @@ const Stylebar: React.FC<StylebarProps> = ({
               }`}
               onClick={() => setStrokeStyle(style)}
             >
-              {style === "solid" ? "—" : style === "dashed" ? "- -" : "···"}
+              {style === "solid" ? "—" : style === "dashed" ? "-" : "···"}
             </button>
           ))}
         </div>

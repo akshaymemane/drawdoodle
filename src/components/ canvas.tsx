@@ -1,36 +1,46 @@
 import { useEffect, useRef, useState } from "react";
 import rough from "roughjs/bin/rough";
+import Stylebar from "./Stylebar";
 import Toolbar from "./Toolbar";
 import { useTheme } from "./theme-provider";
 
+type ToolType = "rectangle" | "ellipse" | "line" | "text";
+type Element = {
+  tool: ToolType;
+  x: number;
+  y: number;
+  endX: number;
+  endY: number;
+  width: number;
+  height: number;
+  stroke: string;
+  strokeWidth: number;
+  strokeStyle: string;
+  backgroundColor: string;
+  fillStyle: string;
+};
+
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [elements, setElements] = useState<any[]>([]); // Array to hold finalized elements
-  const [currentElement, setCurrentElement] = useState<any>(null); // To track the current element being drawn
-  const [drawing, setDrawing] = useState(false); // Flag to track if drawing is in progress
-  const [tool, setTool] = useState<"rectangle" | "ellipse" | "line" | "text">(
-    "rectangle"
-  );
+  const [elements, setElements] = useState<Element[]>([]);
+  const [currentElement, setCurrentElement] = useState<Element | null>(null);
+  const [drawing, setDrawing] = useState(false);
+  const [tool, setTool] = useState<ToolType>("rectangle");
   const [stroke, setStroke] = useState("");
+  const [strokeWidth, setStrokeWidth] = useState<number>(2);
+  const [strokeStyle, setStrokeStyle] = useState<string>("solid");
+  const [backgroundColor, setBackgroundColor] = useState<string>("#ffffff");
+  const [fillStyle, setFillStyle] = useState<string>("none");
   const { theme } = useTheme();
 
-  const setShapeStrokeByTheme = () => {
-    if (theme === "dark") {
-      setStroke("white");
-    } else if (theme === "light") {
-      setStroke("black");
-    } else {
-      setStroke("white");
-    }
-  };
+  useEffect(() => {
+    setStroke(theme === "dark" ? "white" : "black");
+  }, [theme]);
 
-  // Handle the start of drawing (onMouseDown)
-  const handleMouseDown = (event: any) => {
+  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     setDrawing(true);
     const { offsetX, offsetY } = event.nativeEvent;
-
-    // Initialize the current element with the starting position
-    const element = {
+    setCurrentElement({
       tool,
       x: offsetX,
       y: offsetY,
@@ -38,104 +48,118 @@ const Canvas = () => {
       endY: offsetY,
       width: 0,
       height: 0,
-    };
-
-    setCurrentElement(element);
-  };
-
-  // Update the current element's size as the mouse moves (onMouseMove)
-  const handleMouseMove = (event: any) => {
-    if (!drawing) return;
-    const { offsetX, offsetY } = event.nativeEvent;
-
-    setCurrentElement((prev: any) => {
-      const width = offsetX - prev.x;
-      const height = offsetY - prev.y;
-      return {
-        ...prev,
-        endX: offsetX,
-        endY: offsetY,
-        width,
-        height,
-      };
+      stroke,
+      strokeWidth,
+      strokeStyle,
+      backgroundColor,
+      fillStyle,
     });
   };
 
-  // Finalize the drawing when the mouse is released (onMouseUp)
-  const handleMouseUp = () => {
-    if (!drawing) return;
-
-    setDrawing(false);
-
-    // Add the current element to the list of elements (finalize it)
-    if (currentElement) {
-      setElements((prevElements) => [...prevElements, currentElement]);
-      setCurrentElement(null); // Reset the current element
-    }
+  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!drawing || !currentElement) return;
+    const { offsetX, offsetY } = event.nativeEvent;
+    const width = offsetX - currentElement.x;
+    const height = offsetY - currentElement.y;
+    setCurrentElement({
+      ...currentElement,
+      endX: offsetX,
+      endY: offsetY,
+      width,
+      height,
+    });
   };
 
-  // Redraw all elements and the current element in progress
+  const handleMouseUp = () => {
+    if (currentElement) {
+      setElements((prev) => [...prev, currentElement]);
+    }
+    setCurrentElement(null);
+    setDrawing(false);
+  };
+
   const redraw = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    // Initialize rough.js canvas for drawing
     const roughCanvas = rough.canvas(canvas);
-
-    // Clear the canvas before drawing anything
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw all finalized elements (from `elements` array)
-    elements.forEach((element) => {
-      console.log("element: ", element);
-      const { tool, x, y, width, height, endX, endY } = element;
-      if (tool === "rectangle") {
-        roughCanvas.rectangle(x, y, width, height, { stroke: stroke });
-      } else if (tool === "ellipse") {
-        roughCanvas.ellipse(x + width / 2, y + height / 2, width, height, {
-          stroke: stroke,
-        });
-      } else if (tool === "line") {
-        roughCanvas.line(x, y, endX, endY, { stroke: stroke });
+    [...elements, currentElement].forEach((element) => {
+      if (!element) return;
+      const {
+        tool,
+        x,
+        y,
+        width,
+        height,
+        endX,
+        endY,
+        stroke,
+        strokeWidth,
+        fillStyle,
+      } = element;
+      const options = {
+        stroke,
+        strokeWidth,
+        fill: fillStyle !== "none" ? fillStyle : undefined,
+      };
+
+      switch (tool) {
+        case "rectangle":
+          roughCanvas.rectangle(x, y, width, height, options);
+          break;
+        case "ellipse":
+          roughCanvas.ellipse(
+            x + width / 2,
+            y + height / 2,
+            width,
+            height,
+            options
+          );
+          break;
+        case "line":
+          roughCanvas.line(x, y, endX, endY, options);
+          break;
       }
     });
-
-    // Draw the current in-progress element (if any)
-    if (currentElement) {
-      const { tool, x, y, endX, endY, width, height } = currentElement;
-      if (tool === "line") {
-        roughCanvas.line(x, y, endX, endY, { stroke: stroke });
-      } else if (tool === "rectangle") {
-        roughCanvas.rectangle(x, y, width, height, { stroke: stroke });
-      } else if (tool === "ellipse") {
-        roughCanvas.ellipse(x + width / 2, y + height / 2, width, height, {
-          stroke: stroke,
-        });
-      }
-    }
   };
 
-  // Redraw whenever `elements` or `currentElement` changes
+  const clearCanvas = () => {
+    setElements([]);
+  };
+
   useEffect(() => {
-    setShapeStrokeByTheme();
     redraw();
   }, [elements, currentElement]);
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Toolbar */}
       <div className="flex justify-center items-center shadow-md p-4">
-        <Toolbar setTool={setTool} />
+        <Toolbar setTool={setTool} clearCanvas={clearCanvas} />
       </div>
-
-      {/* Canvas */}
+      <div className="fixed top-0 left-0 translate-y-1/2 shadow-md p-4">
+        <Stylebar
+          stroke={stroke}
+          setStroke={setStroke}
+          strokeWidth={strokeWidth}
+          setStrokeWidth={setStrokeWidth}
+          strokeStyle={strokeStyle}
+          setStrokeStyle={setStrokeStyle}
+          backgroundColor={backgroundColor}
+          setBackgroundColor={setBackgroundColor}
+          fillStyle={fillStyle}
+          setFillStyle={setFillStyle}
+        />
+      </div>
       <div className="flex-grow overflow-auto">
         <canvas
           ref={canvasRef}
           className="border border-gray-300 mx-auto mt-4"
-          width={2000}
+          width={1875}
           height={1000}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}

@@ -7,8 +7,8 @@ interface FontFamilySelectorProps {
 }
 
 const fontFamilies = [
-  { id: "handdrawn", icon: PencilLine },
-  { id: "normal", icon: CaseSensitive },
+  { id: "small", icon: PencilLine },
+  { id: "medium", icon: CaseSensitive },
   { id: "code", icon: Code },
 ];
 

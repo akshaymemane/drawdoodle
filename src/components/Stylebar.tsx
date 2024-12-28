@@ -1,11 +1,12 @@
-import { AlignCenter, AlignLeft, AlignRight } from "lucide-react";
 import React from "react";
 import BackgroundSelector from "./selectors/BackgroundSelector";
 import FillStyleSelector from "./selectors/FillStyleSelector";
 import FontFamilySelector from "./selectors/FontFamilySelector";
+import FontSizeSelector from "./selectors/FontSizeSelector";
 import StrokeSelector from "./selectors/StrokeSelector";
 import StrokeStyleSelector from "./selectors/StrokeStyleSelector";
 import StrokeWidthSelector from "./selectors/StrokeWidthSelector";
+import TextAlignmentSelector from "./selectors/TextAlignmentSelector";
 
 interface StylebarProps {
   stroke: string;
@@ -18,12 +19,12 @@ interface StylebarProps {
   setStrokeStyle: (value: string) => void;
   fillStyle: string;
   setFillStyle: (value: string) => void;
-  fontFamily: "handdrawn" | "normal" | "code";
+  fontFamily: string;
   setFontFamily: (value: string) => void;
-  fontSize: "small" | "medium" | "large";
-  setFontSize: (value: "small" | "medium" | "large") => void;
-  textAlignment: "left" | "center" | "right";
-  setTextAlignment: (value: "left" | "center" | "right") => void;
+  fontSize: string;
+  setFontSize: (value: string) => void;
+  textAlignment: string;
+  setTextAlignment: (value: string) => void;
 }
 
 const Stylebar: React.FC<StylebarProps> = ({
@@ -77,54 +78,13 @@ const Stylebar: React.FC<StylebarProps> = ({
       />
 
       {/* Font Size Section */}
-      <div>
-        <h3 className="text-sm font-bold mb-2">Font Size</h3>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setFontSize("small")}
-            className="px-4 py-2 border rounded hover:bg-gray-400 bg-gray-700"
-          >
-            S
-          </button>
-          <button
-            onClick={() => setFontSize("medium")}
-            className="px-4 py-2 border rounded hover:bg-gray-400 bg-gray-700"
-          >
-            M
-          </button>
-          <button
-            onClick={() => setFontSize("large")}
-            className="px-4 py-2 border rounded hover:bg-gray-400 bg-gray-700"
-          >
-            L
-          </button>
-        </div>
-      </div>
+      <FontSizeSelector fontSize={fontSize} setFontSize={setFontSize} />
 
       {/* Text Alignment Section */}
-      <div>
-        <h3 className="text-sm font-bold mb-2">Text Align</h3>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setTextAlignment("left")}
-            className="px-3 py-2 border rounded hover:bg-gray-400 bg-gray-700"
-          >
-            <AlignLeft size={20} />
-          </button>
-          <button
-            onClick={() => setTextAlignment("center")}
-            className="px-3 py-2 border rounded hover:bg-gray-400 bg-gray-700"
-          >
-            <AlignCenter size={20} />
-          </button>
-          <button
-            onClick={() => setTextAlignment("right")}
-            className="px-3 py-2 border rounded hover:bg-gray-400 bg-gray-700"
-          >
-            <AlignRight size={20} />
-          </button>
-        </div>
-      </div>
+      <TextAlignmentSelector
+        textAlign={textAlignment}
+        setTextAlign={setTextAlignment}
+      />
 
       {/* Opacity */}
       <div>

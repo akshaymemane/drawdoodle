@@ -1,6 +1,6 @@
 interface StrokeSelectorProps {
   stroke: string;
-  setStroke: (color: string) => void;
+  setStroke: (stroke: string) => void;
 }
 
 const StrokeSelector: React.FC<StrokeSelectorProps> = ({

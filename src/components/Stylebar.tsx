@@ -10,6 +10,7 @@ import React from "react";
 import BackgroundSelector from "./styles/BackgroundSelector";
 import FillStyleSelector from "./styles/FillStyleSelector";
 import StrokeSelector from "./styles/StrokeSelector";
+import StrokeWidthSelector from "./styles/StrokeWidthSelector";
 
 interface StylebarProps {
   stroke: string;
@@ -63,22 +64,10 @@ const Stylebar: React.FC<StylebarProps> = ({
       <FillStyleSelector fillStyle={fillStyle} setFillStyle={setFillStyle} />
 
       {/* Stroke Width */}
-      <div>
-        <h3 className="text-sm font-bold mb-2">Stroke Width</h3>
-        <div className="flex space-x-2">
-          {[1, 2, 3].map((width) => (
-            <button
-              key={width}
-              className={`w-8 h-8 flex items-center justify-center border rounded ${
-                strokeWidth === width ? "bg-blue-500 text-white" : "bg-gray-700"
-              }`}
-              onClick={() => setStrokeWidth(width)}
-            >
-              {width}
-            </button>
-          ))}
-        </div>
-      </div>
+      <StrokeWidthSelector
+        strokeWidth={strokeWidth}
+        setStrokeWidth={setStrokeWidth}
+      />
 
       {/* Stroke Style */}
       <div>

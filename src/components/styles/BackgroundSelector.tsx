@@ -1,6 +1,6 @@
 interface BackgroundSelectorProps {
   background: string;
-  setBackground: (color: string) => void;
+  setBackground: (background: string) => void;
 }
 
 const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({

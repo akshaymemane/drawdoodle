@@ -1,5 +1,5 @@
 import { Cursor, Element, ToolType } from "@/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import rough from "roughjs/bin/rough";
 import Stylebar from "./Stylebar";
 import Toolbar from "./Toolbar";
@@ -25,6 +25,8 @@ const Canvas = () => {
   const [cursors, setCursors] = useState<Cursor[]>([]); // State to store cursor positions
   const pressedKeys = usePressedKeys();
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [scaleOffset, setScaleOffset] = useState({ x: 0, y: 0 });
+  const [selectedElement, setSelectedElement] = useState<Element | null>();
 
   const { sendMessage, lastMessage } = useWebSocket();
 
@@ -84,6 +86,40 @@ const Canvas = () => {
       }
     }
   }, [lastMessage]);
+
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    const scaledWidth = canvas.width * scale;
+    const scaledHeight = canvas.height * scale;
+    const scaleOffsetX = (scaledWidth - canvas.width) / 2;
+    const scaleOffsetY = (scaledHeight - canvas.height) / 2;
+    setScaleOffset({ x: scaleOffsetX, y: scaleOffsetY });
+
+    context.save();
+    context.translate(
+      panOffset.x * scale - scaleOffsetX,
+      panOffset.y * scale - scaleOffsetY
+    );
+    context.scale(scale, scale);
+
+    elements.forEach((element) => {
+      if (
+        tool === "pen" &&
+        selectedElement &&
+        selectedElement.id === element.id
+      )
+        return;
+      redraw();
+    });
+    context.restore();
+  }, [elements, selectedElement, panOffset, scale]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     setDrawing(true);

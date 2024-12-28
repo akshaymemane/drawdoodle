@@ -1,37 +1,18 @@
+import { Cursor, Element, ToolType } from "@/types";
 import { useEffect, useRef, useState } from "react";
 import rough from "roughjs/bin/rough";
 import Stylebar from "./Stylebar";
 import Toolbar from "./Toolbar";
+import { ControlPanel } from "./control-panel";
+import { useHistory } from "./hooks/useHistory";
+import { usePressedKeys } from "./hooks/usePressedKeys";
+import useWebSocket from "./hooks/useWebSocket";
 import { useTheme } from "./theme-provider";
-import useWebSocket from "./websocket";
-
-type ToolType = "rectangle" | "ellipse" | "line" | "arrow" | "text" | "pen";
-type Element = {
-  id: string;
-  tool: ToolType;
-  x: number;
-  y: number;
-  endX: number;
-  endY: number;
-  width: number;
-  height: number;
-  stroke: string;
-  strokeWidth: number;
-  strokeStyle: string;
-  backgroundColor: string;
-  fillStyle: string;
-  penPath?: { x: number; y: number }[];
-};
-
-type Cursor = {
-  id: string;
-  x: number;
-  y: number;
-};
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [elements, setElements] = useState<Element[]>([]);
+  const { elements, setElements, undo, redo } = useHistory([]);
+
   const [currentElement, setCurrentElement] = useState<Element | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [tool, setTool] = useState<ToolType>("rectangle");
@@ -42,8 +23,13 @@ const Canvas = () => {
   const [fillStyle, setFillStyle] = useState<string>("none");
   const [penPath, setPenPath] = useState<{ x: number; y: number }[]>([]);
   const [cursors, setCursors] = useState<Cursor[]>([]); // State to store cursor positions
+  const pressedKeys = usePressedKeys();
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
 
   const { sendMessage, lastMessage } = useWebSocket();
+
+  //control panel
+  const [scale, setScale] = useState(1);
 
   const { theme } = useTheme();
 
@@ -254,12 +240,12 @@ const Canvas = () => {
     });
 
     // Draw the cursors of all connected clients
-    cursors.forEach((cursor) => {
-      context.beginPath();
-      context.arc(cursor.x, cursor.y, 5, 0, Math.PI * 2);
-      context.fillStyle = "red"; // You can assign unique colors per cursor
-      context.fill();
-    });
+    // cursors.forEach((cursor) => {
+    //   context.beginPath();
+    //   context.arc(cursor.x, cursor.y, 5, 0, Math.PI * 2);
+    //   context.fillStyle = "red"; // You can assign unique colors per cursor
+    //   context.fill();
+    // });
   };
 
   function drawArrow(
@@ -290,14 +276,68 @@ const Canvas = () => {
     sendMessage(JSON.stringify({ type: "clear" })); // Notify all clients to clear their canvases
   };
 
+  //control panel
+
+  useEffect(() => {
+    const undoRedoFunction = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key === "z") {
+          if (event.shiftKey) {
+            redo();
+          } else {
+            undo();
+          }
+        } else if (event.key === "y") {
+          redo();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", undoRedoFunction);
+    return () => {
+      document.removeEventListener("keydown", undoRedoFunction);
+    };
+  }, [undo, redo]);
+
+  useEffect(() => {
+    const panOrZoomFunction = (event: WheelEvent) => {
+      if (pressedKeys.has("Meta") || pressedKeys.has("Control")) {
+        onZoom(event.deltaY * -0.01);
+      } else {
+        setPanOffset((prevState) => ({
+          x: prevState.x - event.deltaX,
+          y: prevState.y - event.deltaY,
+        }));
+      }
+    };
+
+    document.addEventListener("wheel", panOrZoomFunction);
+    return () => {
+      document.removeEventListener("wheel", panOrZoomFunction);
+    };
+  }, [pressedKeys]);
+
+  const onZoom = (delta: number) => {
+    setScale((prevState) => Math.min(Math.max(prevState + delta, 0.1), 20));
+  };
+
   useEffect(() => {
     redraw();
   }, [elements, currentElement, cursors]);
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="flex justify-center items-center shadow-md p-4">
+    <div>
+      <div className="fixed top-0 left-0 w-full flex justify-center shadow-md p-4">
         <Toolbar setTool={setTool} clearCanvas={clearCanvas} />
+      </div>
+      <div className="flex fixed gap-10 bottom-2 left-2 p-2">
+        <ControlPanel
+          undo={undo}
+          redo={redo}
+          onZoom={onZoom}
+          scale={scale}
+          setScale={setScale}
+        />
       </div>
       {toolsWithSidebar.includes(tool) && (
         <div className="fixed top-0 left-0 translate-y-1/2 shadow-md p-4">
@@ -318,9 +358,8 @@ const Canvas = () => {
       <div className="flex-grow overflow-auto">
         <canvas
           ref={canvasRef}
-          className="border border-gray-300 mx-auto mt-4"
-          width={1875}
-          height={1000}
+          width={window.innerWidth}
+          height={window.innerHeight}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}

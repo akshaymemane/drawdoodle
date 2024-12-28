@@ -17,7 +17,7 @@ const Canvas = () => {
   const [drawing, setDrawing] = useState(false);
   const [tool, setTool] = useState<ToolType>("rectangle");
   const [stroke, setStroke] = useState("");
-  const [strokeWidth, setStrokeWidth] = useState<number>(2);
+  const [strokeWidth, setStrokeWidth] = useState<number>(1);
   const [strokeStyle, setStrokeStyle] = useState<string>("solid");
   const [backgroundColor, setBackgroundColor] = useState<string>("#ffffff");
   const [fillStyle, setFillStyle] = useState<string>("none");
@@ -38,22 +38,6 @@ const Canvas = () => {
   useEffect(() => {
     setStroke(theme === "dark" ? "white" : "black");
   }, [theme]);
-
-  const data = {
-    id: "61b411ba-ec6a-45b6-8b94-facd79173a11",
-    tool: "rectangle",
-    x: 574,
-    y: 512,
-    endX: 849,
-    endY: 696,
-    width: 275,
-    height: 184,
-    stroke: "white",
-    strokeWidth: 2,
-    strokeStyle: "solid",
-    backgroundColor: "#ffffff",
-    fillStyle: "none",
-  };
 
   useEffect(() => {
     if (lastMessage) {
@@ -192,13 +176,14 @@ const Canvas = () => {
         stroke,
         strokeWidth,
         fillStyle,
+        backgroundColor,
         penPath,
       } = element;
-      const options = {
+      let options = {
         stroke,
         strokeWidth,
-        fillStyle: "zigzag-line",
-        fill: fillStyle !== "none" ? fillStyle : undefined,
+        fillStyle: fillStyle !== "none" ? fillStyle : undefined,
+        fill: backgroundColor !== "none" ? backgroundColor : undefined,
       };
 
       switch (tool) {
@@ -344,12 +329,12 @@ const Canvas = () => {
           <Stylebar
             stroke={stroke}
             setStroke={setStroke}
+            backgroundColor={backgroundColor}
+            setBackgroundColor={setBackgroundColor}
             strokeWidth={strokeWidth}
             setStrokeWidth={setStrokeWidth}
             strokeStyle={strokeStyle}
             setStrokeStyle={setStrokeStyle}
-            backgroundColor={backgroundColor}
-            setBackgroundColor={setBackgroundColor}
             fillStyle={fillStyle}
             setFillStyle={setFillStyle}
           />

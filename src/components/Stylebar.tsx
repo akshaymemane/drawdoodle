@@ -7,17 +7,19 @@ import {
   PencilLine,
 } from "lucide-react";
 import React from "react";
+import BackgroundSelector from "./styles/BackgroundSelector";
+import FillStyleSelector from "./styles/FillStyleSelector";
 import StrokeSelector from "./styles/StrokeSelector";
 
 interface StylebarProps {
   stroke: string;
   setStroke: (value: string) => void;
+  backgroundColor: string;
+  setBackgroundColor: (value: string) => void;
   strokeWidth: number;
   setStrokeWidth: (value: number) => void;
   strokeStyle: string;
   setStrokeStyle: (value: string) => void;
-  backgroundColor: string;
-  setBackgroundColor: (value: string) => void;
   fillStyle: string;
   setFillStyle: (value: string) => void;
   fontFamily: "handdrawn" | "normal" | "code";
@@ -27,16 +29,6 @@ interface StylebarProps {
   textAlignment: "left" | "center" | "right";
   setTextAlignment: (value: "left" | "center" | "right") => void;
 }
-
-const fillStyleOptions = [
-  "hachure",
-  "solid",
-  "zigzag",
-  "cross-hatch",
-  "dots",
-  "dashed",
-  "zigzag-line",
-];
 
 const Stylebar: React.FC<StylebarProps> = ({
   stroke,
@@ -62,42 +54,13 @@ const Stylebar: React.FC<StylebarProps> = ({
       <StrokeSelector stroke={stroke} setStroke={setStroke} />
 
       {/* Background Section */}
-      <div>
-        <h3 className="text-sm font-bold mb-2">Background</h3>
-        <div className="flex space-x-2">
-          {["transparent", "#805ad5", "#2d3748", "#4a5568", "#2f855a"].map(
-            (color) => (
-              <div
-                key={color}
-                className={`w-8 h-8 cursor-pointer border ${
-                  backgroundColor === color
-                    ? "border-blue-500"
-                    : "border-transparent"
-                }`}
-                style={{ backgroundColor: color }}
-                onClick={() => setBackgroundColor(color)}
-              />
-            )
-          )}
-        </div>
-      </div>
+      <BackgroundSelector
+        background={backgroundColor}
+        setBackground={setBackgroundColor}
+      />
 
       {/* Fill Section */}
-      <div>
-        <h3 className="text-sm font-bold mb-2">Fill Style</h3>
-        <div className="flex space-x-2">
-          {["none", "#9f7aea", "#e2e8f0"].map((color) => (
-            <div
-              key={color}
-              className={`w-8 h-8 cursor-pointer border ${
-                fillStyle === color ? "border-blue-500" : "border-transparent"
-              }`}
-              style={{ backgroundColor: color }}
-              onClick={() => setFillStyle(color)}
-            />
-          ))}
-        </div>
-      </div>
+      <FillStyleSelector fillStyle={fillStyle} setFillStyle={setFillStyle} />
 
       {/* Stroke Width */}
       <div>

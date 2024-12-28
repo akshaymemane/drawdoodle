@@ -1,17 +1,11 @@
-import {
-  AlignCenter,
-  AlignLeft,
-  AlignRight,
-  CaseSensitive,
-  Code,
-  PencilLine,
-} from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight } from "lucide-react";
 import React from "react";
-import BackgroundSelector from "./styles/BackgroundSelector";
-import FillStyleSelector from "./styles/FillStyleSelector";
-import StrokeSelector from "./styles/StrokeSelector";
-import StrokeStyleSelector from "./styles/StrokeStyleSelector";
-import StrokeWidthSelector from "./styles/StrokeWidthSelector";
+import BackgroundSelector from "./selectors/BackgroundSelector";
+import FillStyleSelector from "./selectors/FillStyleSelector";
+import FontFamilySelector from "./selectors/FontFamilySelector";
+import StrokeSelector from "./selectors/StrokeSelector";
+import StrokeStyleSelector from "./selectors/StrokeStyleSelector";
+import StrokeWidthSelector from "./selectors/StrokeWidthSelector";
 
 interface StylebarProps {
   stroke: string;
@@ -25,7 +19,7 @@ interface StylebarProps {
   fillStyle: string;
   setFillStyle: (value: string) => void;
   fontFamily: "handdrawn" | "normal" | "code";
-  setFontFamily: (value: "handdrawn" | "normal" | "code") => void;
+  setFontFamily: (value: string) => void;
   fontSize: "small" | "medium" | "large";
   setFontSize: (value: "small" | "medium" | "large") => void;
   textAlignment: "left" | "center" | "right";
@@ -77,29 +71,10 @@ const Stylebar: React.FC<StylebarProps> = ({
       />
 
       {/* Font Family Section */}
-      <div>
-        <h3 className="text-sm font-bold mb-2">Font Family</h3>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setFontFamily("handdrawn")}
-            className="p-3 border rounded hover:bg-gray-400 bg-gray-700"
-          >
-            <PencilLine size={20} />
-          </button>
-          <button
-            onClick={() => setFontFamily("normal")}
-            className="p-3 border rounded hover:bg-gray-400 bg-gray-700"
-          >
-            <CaseSensitive size={20} />
-          </button>
-          <button
-            onClick={() => setFontFamily("code")}
-            className="p-3 border rounded hover:bg-gray-400 bg-gray-700"
-          >
-            <Code size={20} />
-          </button>
-        </div>
-      </div>
+      <FontFamilySelector
+        fontFamily={fontFamily}
+        setFontFamily={setFontFamily}
+      />
 
       {/* Font Size Section */}
       <div>

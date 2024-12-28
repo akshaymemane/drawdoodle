@@ -7,6 +7,7 @@ import {
   PencilLine,
 } from "lucide-react";
 import React from "react";
+import StrokeSelector from "./styles/StrokeSelector";
 
 interface StylebarProps {
   stroke: string;
@@ -58,23 +59,7 @@ const Stylebar: React.FC<StylebarProps> = ({
   return (
     <div className="p-4 bg-gray-800 text-white rounded-lg shadow-md space-y-4">
       {/* Stroke Section */}
-      <div>
-        <h3 className="text-sm font-bold mb-2">Stroke</h3>
-        <div className="flex space-x-2">
-          {["#ffffff", "#ff6f61", "#48bb78", "#63b3ed", "#ed8936"].map(
-            (color) => (
-              <div
-                key={color}
-                className={`w-8 h-8 cursor-pointer border ${
-                  stroke === color ? "border-blue-500" : "border-transparent"
-                }`}
-                style={{ backgroundColor: color }}
-                onClick={() => setStroke(color)}
-              />
-            )
-          )}
-        </div>
-      </div>
+      <StrokeSelector stroke={stroke} setStroke={setStroke} />
 
       {/* Background Section */}
       <div>

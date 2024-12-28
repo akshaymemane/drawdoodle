@@ -376,7 +376,7 @@ const Canvas = () => {
         />
       </div>
       {toolsWithSidebar.includes(tool) && (
-        <div className="fixed top-0 left-0 translate-y-1/2 shadow-md p-4">
+        <div className="fixed inset-0 flex items-center shadow-md p-4">
           <Stylebar
             stroke={stroke}
             setStroke={setStroke}

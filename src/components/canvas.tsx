@@ -21,6 +21,10 @@ const Canvas = () => {
   const [strokeStyle, setStrokeStyle] = useState<string>("solid");
   const [backgroundColor, setBackgroundColor] = useState<string>("#ffffff");
   const [fillStyle, setFillStyle] = useState<string>("none");
+  const [fontFamily, setFontFamily] = useState<string>("none");
+  const [fontSize, setFontSize] = useState<string>("none");
+  const [textAlignment, setTextAlignment] = useState<string>("none");
+
   const [penPath, setPenPath] = useState<{ x: number; y: number }[]>([]);
   const [cursors, setCursors] = useState<Cursor[]>([]); // State to store cursor positions
   const pressedKeys = usePressedKeys();
@@ -347,6 +351,12 @@ const Canvas = () => {
             setStrokeStyle={setStrokeStyle}
             fillStyle={fillStyle}
             setFillStyle={setFillStyle}
+            fontFamily={fontFamily}
+            setFontFamily={setFontFamily}
+            fontSize={fontSize}
+            setFontSize={setFontSize}
+            textAlignment={textAlignment}
+            setTextAlignment={setTextAlignment}
           />
         </div>
       )}

@@ -178,6 +178,7 @@ const Canvas = () => {
         fillStyle,
         backgroundColor,
         penPath,
+        strokeStyle, // Use strokeStyle from the element
       } = element;
       let options = {
         stroke,
@@ -185,6 +186,15 @@ const Canvas = () => {
         fillStyle: fillStyle !== "none" ? fillStyle : undefined,
         fill: backgroundColor !== "none" ? backgroundColor : undefined,
       };
+
+      // Set the line dash based on the element's strokeStyle
+      if (strokeStyle === "dashed") {
+        context.setLineDash([5, 15]);
+      } else if (strokeStyle === "dotted") {
+        context.setLineDash([5]);
+      } else {
+        context.setLineDash([]);
+      }
 
       switch (tool) {
         case "rectangle":

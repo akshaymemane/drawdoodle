@@ -25,6 +25,9 @@ const Canvas = () => {
   const [fontSize, setFontSize] = useState<string>("none");
   const [textAlignment, setTextAlignment] = useState<string>("none");
 
+  const [texts, setTexts] = useState<any[]>([]);
+
+
   const [penPath, setPenPath] = useState<{ x: number; y: number }[]>([]);
   const [cursors, setCursors] = useState<Cursor[]>([]); // State to store cursor positions
   const pressedKeys = usePressedKeys();
@@ -38,6 +41,28 @@ const Canvas = () => {
   const { theme } = useTheme();
 
   const toolsWithSidebar = ["rectangle", "ellipse", "line", "arrow", "text"];
+
+
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    if (tool === "text") {
+      const newText = {
+        id: Date.now(), // Unique identifier
+        x: e.clientX, // Click X position
+        y: e.clientY, // Click Y position
+        content: "", // Default text
+      };
+
+      setTexts((prev) => [...prev, newText]);
+    }
+  };
+
+  const handleTextEdit = (id: number, newContent: string) => {
+    setTexts((prev) =>
+      prev.map((text) =>
+        text.id === id ? { ...text, content: newContent } : text
+      )
+    );
+  };
 
   useEffect(() => {
     setStroke(theme === "dark" ? "white" : "black");
@@ -361,6 +386,34 @@ const Canvas = () => {
         </div>
       )}
       <div className="flex-grow overflow-auto">
+        {texts.map((text) => (
+          <div
+            key={text.id}
+            style={{
+              position: "absolute",
+              left: text.x,
+              top: text.y,
+              cursor: "text",
+            }}
+          >
+            {/* Editable input for text */}
+            <input
+              type="text"
+              value={text.content}
+              style={{
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: "white", // Adjust color based on your design
+                fontSize: "16px", // Adjust font size
+                width: "auto", // Expand based on content
+              }}
+              onChange={(e) => handleTextEdit(text.id, e.target.value)} // Update the state
+              autoFocus
+            />
+          </div>
+        ))}
+
         <canvas
           ref={canvasRef}
           width={window.innerWidth}
@@ -368,6 +421,7 @@ const Canvas = () => {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onClick={handleCanvasClick}
         />
       </div>
     </div>

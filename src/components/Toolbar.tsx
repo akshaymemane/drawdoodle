@@ -1,3 +1,4 @@
+import { ToolType } from "@/types";
 import {
   Circle,
   Minus,
@@ -10,74 +11,58 @@ import {
 } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 
+// Define a type for tools
+type Tool =
+  | "select"
+  | "rectangle"
+  | "ellipse"
+  | "line"
+  | "arrow"
+  | "text"
+  | "pen";
+
 const Toolbar = ({
+  activeTool,
   setTool,
   clearCanvas,
-  activeTool,
 }: {
-  setTool: (tool: string) => void;
+  setTool: (tool: ToolType) => void;
   clearCanvas: () => void;
-  activeTool: string;
+  activeTool: Tool;
 }) => {
+  // Tool configuration with explicit typing for 'name'
+  const tools: { name: Tool; Icon: React.ComponentType }[] = [
+    { name: "select", Icon: MousePointer },
+    { name: "rectangle", Icon: Square },
+    { name: "ellipse", Icon: Circle },
+    { name: "line", Icon: Minus },
+    { name: "arrow", Icon: MoveRight },
+    { name: "text", Icon: Type },
+    { name: "pen", Icon: Pen },
+  ];
+
+  // Shared button styling
   const buttonClass =
     "hover:bg-gray-400 bg-gray-700 px-4 py-2 text-white rounded";
 
-  const getActiveClass = (tool: string) =>
+  // Active tool styling
+  const getActiveClass = (tool: Tool) =>
     activeTool === tool ? "bg-blue-500" : "bg-gray-700";
 
   return (
     <div className="flex justify-center items-center bg-gray-800 space-x-2 rounded p-4">
+      {tools.map(({ name, Icon }) => (
+        <button
+          key={name}
+          onClick={() => setTool(name)}
+          className={`${getActiveClass(name)} ${buttonClass}`}
+          aria-label={`${name} Tool`}
+        >
+          <Icon />
+        </button>
+      ))}
       <button
-        onClick={() => setTool("select")}
-        className={`${getActiveClass("select")} ${buttonClass}`}
-        aria-label="Select Tool"
-      >
-        <MousePointer />
-      </button>
-      <button
-        onClick={() => setTool("rectangle")}
-        className={`${getActiveClass("rectangle")} ${buttonClass}`}
-        aria-label="Rectangle Tool"
-      >
-        <Square />
-      </button>
-      <button
-        onClick={() => setTool("ellipse")}
-        className={`${getActiveClass("ellipse")} ${buttonClass}`}
-        aria-label="Ellipse Tool"
-      >
-        <Circle />
-      </button>
-      <button
-        onClick={() => setTool("line")}
-        className={`${getActiveClass("line")} ${buttonClass}`}
-        aria-label="Line Tool"
-      >
-        <Minus />
-      </button>
-      <button
-        onClick={() => setTool("arrow")}
-        className={`${getActiveClass("arrow")} ${buttonClass}`}
-        aria-label="Arrow Tool"
-      >
-        <MoveRight />
-      </button>
-      <button
-        onClick={() => setTool("text")}
-        className={`${getActiveClass("text")} ${buttonClass}`}
-        aria-label="Text Tool"
-      >
-        <Type />
-      </button>
-      <button
-        onClick={() => setTool("pen")}
-        className={`${getActiveClass("pen")} ${buttonClass}`}
-        aria-label="Pen Tool"
-      >
-        <Pen />
-      </button>
-      <button
-        onClick={() => clearCanvas()}
+        onClick={clearCanvas}
         className={buttonClass}
         aria-label="Clear Canvas"
       >

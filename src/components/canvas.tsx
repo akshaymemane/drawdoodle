@@ -8,6 +8,7 @@ import { useHistory } from "./hooks/useHistory";
 import { usePressedKeys } from "./hooks/usePressedKeys";
 import useWebSocket from "./hooks/useWebSocket";
 import { useTheme } from "./theme-provider";
+import { drawArrow, getBoundingBox } from "./util/util";
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -25,6 +26,8 @@ const Canvas = () => {
   const [fontSize, setFontSize] = useState<string>("none");
   const [textAlignment, setTextAlignment] = useState<string>("none");
 
+  const [selectionRect, setSelectionRect] = useState<any>([]);
+  const [selectedElements, setSelectedElements] = useState<any>([]);
   const [texts, setTexts] = useState<any[]>([]);
 
 
@@ -50,6 +53,12 @@ const Canvas = () => {
         x: e.clientX, // Click X position
         y: e.clientY, // Click Y position
         content: "", // Default text
+        options: {
+          fontFamily,
+          fontSize,
+          color: stroke,
+          textAlign: textAlignment,
+        },
       };
 
       setTexts((prev) => [...prev, newText]);
@@ -99,6 +108,15 @@ const Canvas = () => {
   }, [lastMessage]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+
+    setSelectionRect({
+      x: event.clientX,
+      y: event.clientY,
+      width: 0,
+      height: 0,
+    });
+
+
     setDrawing(true);
     const { offsetX, offsetY } = event.nativeEvent;
     const id = crypto.randomUUID(); // Generate unique ID for the element
@@ -140,6 +158,15 @@ const Canvas = () => {
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+
+    if (selectionRect) {
+      setSelectionRect((prev) => ({
+        ...prev,
+        width: event.clientX - prev.x,
+        height: event.clientY - prev.y,
+      }));
+    }
+
     if (!drawing || !currentElement) return;
     const { offsetX, offsetY } = event.nativeEvent;
 
@@ -174,12 +201,28 @@ const Canvas = () => {
   };
 
   const handleMouseUp = () => {
+    const selectedElements = elements.filter((el) =>
+      isElementInsideSelection(el, selectionRect)
+    );
+    setSelectedElements(selectedElements);
+    setSelectionRect(null); // Clear the selection box
+
     if (currentElement) {
       setElements((prev) => [...prev, currentElement]);
       sendMessage(JSON.stringify(currentElement)); // Send the new element to the server
     }
     setCurrentElement(null);
     setDrawing(false);
+  };
+
+  const isElementInsideSelection = (element, selectionRect) => {
+    const elBounds = getBoundingBox(element);
+    return (
+      elBounds.x + elBounds.width > selectionRect.x &&
+      elBounds.x < selectionRect.x + selectionRect.width &&
+      elBounds.y + elBounds.height > selectionRect.y &&
+      elBounds.y < selectionRect.y + selectionRect.height
+    );
   };
 
   const redraw = () => {
@@ -261,42 +304,41 @@ const Canvas = () => {
           }
           break;
       }
+
+      // Highlight selected elements
+      if (selectedElements.some((selected) => selected.id === element.id)) {
+        context.beginPath();
+        context.rect(x, y, width, height);
+        context.lineWidth = 2;
+        context.strokeStyle = "blue"; // Or any color for selection highlight
+        context.setLineDash([5, 5]); // Dashed border for selection
+        context.stroke();
+      }
     });
+
+    // // Render text elements
+    // texts.forEach((text) => {
+    //   const { x, y, content, options } = text;
+    //   context.font = `${options.fontSize} ${options.fontFamily}`;
+    //   context.fillStyle = options.color;
+    //   context.textAlign = options.textAlign as CanvasTextAlign;
+    //   context.fillText(content, x, y);
+    // });
 
     // Draw the cursors of all connected clients
     // cursors.forEach((cursor) => {
     //   context.beginPath();
     //   context.arc(cursor.x, cursor.y, 5, 0, Math.PI * 2);
-    //   context.fillStyle = "red"; // You can assign unique colors per cursor
+    //   context.fillStyle = cursor.color || "blue";
     //   context.fill();
     // });
-  };
 
-  function drawArrow(
-    rc: any,
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    options: any
-  ) {
-    const headLength = 10;
-    rc.line(x1, y1, x2, y2, options);
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-    const arrowPoint1 = {
-      x: x2 - headLength * Math.cos(angle - Math.PI / 6),
-      y: y2 - headLength * Math.sin(angle - Math.PI / 6),
-    };
-    const arrowPoint2 = {
-      x: x2 - headLength * Math.cos(angle + Math.PI / 6),
-      y: y2 - headLength * Math.sin(angle + Math.PI / 6),
-    };
-    rc.line(x2, y2, arrowPoint1.x, arrowPoint1.y, options);
-    rc.line(x2, y2, arrowPoint2.x, arrowPoint2.y, options);
-  }
+    
+  };
 
   const clearCanvas = () => {
     setElements([]);
+    redraw();
     sendMessage(JSON.stringify({ type: "clear" })); // Notify all clients to clear their canvases
   };
 
@@ -342,7 +384,7 @@ const Canvas = () => {
   }, [pressedKeys]);
 
   const onZoom = (delta: number) => {
-    setScale((prevState) => Math.min(Math.max(prevState + delta, 0.1), 20));
+    setScale((prevScale) => Math.min(Math.max(prevScale + delta, 0.5), 2));
   };
 
   useEffect(() => {
@@ -352,7 +394,7 @@ const Canvas = () => {
   return (
     <div>
       <div className="fixed top-0 left-0 w-full flex justify-center shadow-md p-4">
-        <Toolbar setTool={setTool} clearCanvas={clearCanvas} />
+        <Toolbar activeTool={tool} setTool={setTool} clearCanvas={clearCanvas} />
       </div>
       <div className="flex fixed gap-10 bottom-2 left-2 p-2">
         <ControlPanel
@@ -394,6 +436,9 @@ const Canvas = () => {
               left: text.x,
               top: text.y,
               cursor: "text",
+              fontFamily: text.options.fontFamily,
+              fontSize: text.options.fontSize,
+              color: text.options.stroke
             }}
           >
             {/* Editable input for text */}
@@ -404,7 +449,7 @@ const Canvas = () => {
                 background: "transparent",
                 border: "none",
                 outline: "none",
-                color: "white", // Adjust color based on your design
+                // color: "white", // Adjust color based on your design
                 fontSize: "16px", // Adjust font size
                 width: "auto", // Expand based on content
               }}

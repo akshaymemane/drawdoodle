@@ -47,46 +47,29 @@ const Stylebar: React.FC<StylebarProps> = ({
 }) => {
   return (
     <div className="p-4 bg-gray-800 text-white rounded-lg shadow-md space-y-4">
-      {/* Stroke Section */}
       <StrokeSelector stroke={stroke} setStroke={setStroke} />
-
-      {/* Background Section */}
       <BackgroundSelector
         background={backgroundColor}
         setBackground={setBackgroundColor}
       />
-
-      {/* Fill Section */}
       <FillStyleSelector fillStyle={fillStyle} setFillStyle={setFillStyle} />
-
-      {/* Stroke Width */}
       <StrokeWidthSelector
         strokeWidth={strokeWidth}
         setStrokeWidth={setStrokeWidth}
       />
-
-      {/* Stroke Style */}
       <StrokeStyleSelector
         strokeStyle={strokeStyle}
         setStrokeStyle={setStrokeStyle}
       />
-
-      {/* Font Family Section */}
       <FontFamilySelector
         fontFamily={fontFamily}
         setFontFamily={setFontFamily}
       />
-
-      {/* Font Size Section */}
       <FontSizeSelector fontSize={fontSize} setFontSize={setFontSize} />
-
-      {/* Text Alignment Section */}
       <TextAlignmentSelector
         textAlign={textAlignment}
         setTextAlign={setTextAlignment}
       />
-
-      {/* Opacity */}
       <div>
         <h3 className="text-sm font-bold mb-2">Opacity</h3>
         <input

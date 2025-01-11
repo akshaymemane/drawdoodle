@@ -331,6 +331,7 @@ const Canvas = () => {
 
   const clearCanvas = () => {
     setElements([]);
+    setTexts([]);
     redraw();
     sendMessage(JSON.stringify({ type: "clear" })); // Notify all clients to clear their canvases
   };
@@ -436,7 +437,7 @@ const Canvas = () => {
                 cursor: "text",
                 fontFamily: text.options.fontFamily,
                 fontSize: text.options.fontSize,
-                color: text.options.stroke,
+                color: text.options.color,
               }}
             >
               {/* Editable input for text */}
@@ -447,7 +448,7 @@ const Canvas = () => {
                   background: "transparent",
                   border: "none",
                   outline: "none",
-                  // color: "white", // Adjust color based on your design
+                  color: text.options.color,
                   fontSize: text.options.fontSize, // Adjust font size
                   width: "auto", // Expand based on content,
                   fontFamily: text.options.fontFamily,

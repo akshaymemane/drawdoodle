@@ -6,9 +6,9 @@ interface FontSizeSelectorProps {
 }
 
 const fontSizes = [
-  { id: "small", icon: "S" },
-  { id: "medium", icon: "M" },
-  { id: "large", icon: "L" },
+  { id: "1rem", icon: "S" },
+  { id: "1.5rem", icon: "M" },
+  { id: "2rem", icon: "L" },
 ];
 
 const FontSizeSelector: React.FC<FontSizeSelectorProps> = ({

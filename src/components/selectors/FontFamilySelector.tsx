@@ -7,9 +7,9 @@ interface FontFamilySelectorProps {
 }
 
 const fontFamilies = [
-  { id: "small", icon: PencilLine },
-  { id: "medium", icon: CaseSensitive },
-  { id: "code", icon: Code },
+  { id: "Arial", icon: PencilLine },
+  { id: "Lucide", icon: CaseSensitive },
+  { id: "consolas", icon: Code },
 ];
 
 const FontFamilySelector: React.FC<FontFamilySelectorProps> = ({

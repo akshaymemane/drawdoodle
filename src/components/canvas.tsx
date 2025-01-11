@@ -30,7 +30,6 @@ const Canvas = () => {
   const [selectedElements, setSelectedElements] = useState<any>([]);
   const [texts, setTexts] = useState<any[]>([]);
 
-
   const [penPath, setPenPath] = useState<{ x: number; y: number }[]>([]);
   const [cursors, setCursors] = useState<Cursor[]>([]); // State to store cursor positions
   const pressedKeys = usePressedKeys();
@@ -44,7 +43,6 @@ const Canvas = () => {
   const { theme } = useTheme();
 
   const toolsWithSidebar = ["rectangle", "ellipse", "line", "arrow", "text"];
-
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (tool === "text") {
@@ -108,14 +106,12 @@ const Canvas = () => {
   }, [lastMessage]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-
     setSelectionRect({
       x: event.clientX,
       y: event.clientY,
       width: 0,
       height: 0,
     });
-
 
     setDrawing(true);
     const { offsetX, offsetY } = event.nativeEvent;
@@ -158,7 +154,6 @@ const Canvas = () => {
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-
     if (selectionRect) {
       setSelectionRect((prev) => ({
         ...prev,
@@ -332,8 +327,6 @@ const Canvas = () => {
     //   context.fillStyle = cursor.color || "blue";
     //   context.fill();
     // });
-
-    
   };
 
   const clearCanvas = () => {
@@ -394,7 +387,11 @@ const Canvas = () => {
   return (
     <div>
       <div className="fixed top-0 left-0 w-full flex justify-center shadow-md p-4">
-        <Toolbar activeTool={tool} setTool={setTool} clearCanvas={clearCanvas} />
+        <Toolbar
+          activeTool={tool}
+          setTool={setTool}
+          clearCanvas={clearCanvas}
+        />
       </div>
       <div className="flex fixed gap-10 bottom-2 left-2 p-2">
         <ControlPanel
@@ -429,34 +426,38 @@ const Canvas = () => {
       )}
       <div className="flex-grow overflow-auto">
         {texts.map((text) => (
-          <div
-            key={text.id}
-            style={{
-              position: "absolute",
-              left: text.x,
-              top: text.y,
-              cursor: "text",
-              fontFamily: text.options.fontFamily,
-              fontSize: text.options.fontSize,
-              color: text.options.stroke
-            }}
-          >
-            {/* Editable input for text */}
-            <input
-              type="text"
-              value={text.content}
+          <>
+            <div
+              key={text.id}
               style={{
-                background: "transparent",
-                border: "none",
-                outline: "none",
-                // color: "white", // Adjust color based on your design
-                fontSize: "16px", // Adjust font size
-                width: "auto", // Expand based on content
+                position: "absolute",
+                left: text.x,
+                top: text.y,
+                cursor: "text",
+                fontFamily: text.options.fontFamily,
+                fontSize: text.options.fontSize,
+                color: text.options.stroke,
               }}
-              onChange={(e) => handleTextEdit(text.id, e.target.value)} // Update the state
-              autoFocus
-            />
-          </div>
+            >
+              {/* Editable input for text */}
+              <input
+                type="text"
+                value={text.content}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  // color: "white", // Adjust color based on your design
+                  fontSize: text.options.fontSize, // Adjust font size
+                  width: "auto", // Expand based on content,
+                  fontFamily: text.options.fontFamily,
+                  textAlign: text.options.textAlign,
+                }}
+                onChange={(e) => handleTextEdit(text.id, e.target.value)} // Update the state
+                autoFocus
+              />
+            </div>
+          </>
         ))}
 
         <canvas

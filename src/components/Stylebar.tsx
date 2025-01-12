@@ -92,7 +92,9 @@ const Stylebar: React.FC<StylebarProps> = ({
           max="100"
           className="w-full"
           value={opacity}
-          onChange={(e) => setOpacity(Number(e.target.value))}
+          onChange={(e) => {
+            setOpacity(parseInt(e.target.value));
+          }}
           aria-label="Adjust Opacity"
         />
       </div>

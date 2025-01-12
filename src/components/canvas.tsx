@@ -25,6 +25,7 @@ const Canvas = () => {
   const [fontFamily, setFontFamily] = useState<string>("none");
   const [fontSize, setFontSize] = useState<string>("none");
   const [textAlignment, setTextAlignment] = useState<string>("none");
+  const [opacity, setOpacity] = useState<number>(50);
 
   const [texts, setTexts] = useState<TextElement[]>([]);
 
@@ -213,12 +214,14 @@ const Canvas = () => {
         backgroundColor,
         penPath,
         strokeStyle, // Use strokeStyle from the element
+        opacity,
       } = element;
       let options = {
         stroke,
         strokeWidth,
         fillStyle: fillStyle !== "none" ? fillStyle : undefined,
         fill: backgroundColor !== "none" ? backgroundColor : undefined,
+        opacity: opacity ? opacity / 100 : 1,
       };
 
       // Set the line dash based on the element's strokeStyle
@@ -378,6 +381,8 @@ const Canvas = () => {
             setFontSize={setFontSize}
             textAlignment={textAlignment}
             setTextAlignment={setTextAlignment}
+            opacity={opacity}
+            setOpacity={setOpacity}
             activeTool={tool}
           />
         </div>

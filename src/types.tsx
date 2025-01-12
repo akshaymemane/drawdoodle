@@ -25,6 +25,7 @@ export type Element = {
   fontSize?: number; // Font size (for text elements)
   fontFamily?: string; // Font family (for text elements)
   fontStyle?: "normal" | "italic" | "bold"; // Font style
+  opacity?: number;
   rotation?: number; // Rotation in degrees (optional, default is 0)
 };
 

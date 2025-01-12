@@ -25,6 +25,9 @@ interface StylebarProps {
   setFontSize: (value: string) => void;
   textAlignment: string;
   setTextAlignment: (value: string) => void;
+  opacity: number;
+  setOpacity: (value: number) => void;
+  activeTool: string;
 }
 
 const Stylebar: React.FC<StylebarProps> = ({
@@ -44,7 +47,14 @@ const Stylebar: React.FC<StylebarProps> = ({
   setFontSize,
   textAlignment,
   setTextAlignment,
+  opacity,
+  setOpacity,
+  activeTool,
 }) => {
+  const isTextToolActive = activeTool === "text";
+
+  console.log("Active Tool:", activeTool);
+
   return (
     <div className="p-4 bg-gray-800 text-white rounded-lg shadow-md space-y-4">
       <StrokeSelector stroke={stroke} setStroke={setStroke} />
@@ -61,15 +71,19 @@ const Stylebar: React.FC<StylebarProps> = ({
         strokeStyle={strokeStyle}
         setStrokeStyle={setStrokeStyle}
       />
-      <FontFamilySelector
-        fontFamily={fontFamily}
-        setFontFamily={setFontFamily}
-      />
-      <FontSizeSelector fontSize={fontSize} setFontSize={setFontSize} />
-      <TextAlignmentSelector
-        textAlign={textAlignment}
-        setTextAlign={setTextAlignment}
-      />
+      {isTextToolActive && (
+        <>
+          <FontFamilySelector
+            fontFamily={fontFamily}
+            setFontFamily={setFontFamily}
+          />
+          <FontSizeSelector fontSize={fontSize} setFontSize={setFontSize} />
+          <TextAlignmentSelector
+            textAlign={textAlignment}
+            setTextAlign={setTextAlignment}
+          />
+        </>
+      )}
       <div>
         <h3 className="text-sm font-bold mb-2">Opacity</h3>
         <input
@@ -77,7 +91,9 @@ const Stylebar: React.FC<StylebarProps> = ({
           min="0"
           max="100"
           className="w-full"
-          onChange={(e) => console.log("Opacity changed:", e.target.value)}
+          value={opacity}
+          onChange={(e) => setOpacity(Number(e.target.value))}
+          aria-label="Adjust Opacity"
         />
       </div>
     </div>

@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 
-// Define a type for tools
 type Tool =
   | "select"
   | "rectangle"
@@ -22,15 +21,14 @@ type Tool =
   | "pen";
 
 const Toolbar = ({
-  activeTool,
-  setTool,
-  clearCanvas,
+  activeTool = "select",
+  setTool = () => {},
+  clearCanvas = () => {},
 }: {
   setTool: (tool: ToolType) => void;
   clearCanvas: () => void;
   activeTool: Tool;
 }) => {
-  // Tool configuration with explicit typing for 'name'
   const tools: { name: Tool; Icon: React.ComponentType }[] = [
     { name: "select", Icon: MousePointer },
     { name: "rectangle", Icon: Square },
@@ -41,25 +39,28 @@ const Toolbar = ({
     { name: "pen", Icon: Pen },
   ];
 
-  // Shared button styling
   const buttonClass =
     "hover:bg-gray-400 bg-gray-700 px-4 py-2 text-white rounded";
 
-  // Active tool styling
   const getActiveClass = (tool: Tool) =>
     activeTool === tool ? "bg-blue-500" : "bg-gray-700";
 
   return (
     <div className="flex justify-center items-center bg-gray-800 space-x-2 rounded p-4">
       {tools.map(({ name, Icon }) => (
-        <button
-          key={name}
-          onClick={() => setTool(name)}
-          className={`${getActiveClass(name)} ${buttonClass}`}
-          aria-label={`${name} Tool`}
-        >
-          <Icon />
-        </button>
+        <div key={name} className="group relative">
+          <button
+            onClick={() => setTool(name)}
+            className={`${getActiveClass(name)} ${buttonClass}`}
+            aria-label={`${name} Tool`}
+            aria-pressed={activeTool === name}
+          >
+            <Icon />
+          </button>
+          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block text-sm bg-gray-700 text-white rounded px-2 py-1">
+            {name}
+          </span>
+        </div>
       ))}
       <button
         onClick={clearCanvas}

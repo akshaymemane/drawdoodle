@@ -8,7 +8,7 @@ import { useHistory } from "./hooks/useHistory";
 import { usePressedKeys } from "./hooks/usePressedKeys";
 import useWebSocket from "./hooks/useWebSocket";
 import { useTheme } from "./theme-provider";
-import { drawArrow, getBoundingBox } from "./util/util";
+import { drawArrow } from "./util/util";
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -26,8 +26,6 @@ const Canvas = () => {
   const [fontSize, setFontSize] = useState<string>("none");
   const [textAlignment, setTextAlignment] = useState<string>("none");
 
-  const [selectionRect, setSelectionRect] = useState<any>([]);
-  const [selectedElements, setSelectedElements] = useState<any>([]);
   const [texts, setTexts] = useState<any[]>([]);
 
   const [penPath, setPenPath] = useState<{ x: number; y: number }[]>([]);
@@ -106,13 +104,6 @@ const Canvas = () => {
   }, [lastMessage]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    setSelectionRect({
-      x: event.clientX,
-      y: event.clientY,
-      width: 0,
-      height: 0,
-    });
-
     setDrawing(true);
     const { offsetX, offsetY } = event.nativeEvent;
     const id = crypto.randomUUID(); // Generate unique ID for the element
@@ -154,13 +145,6 @@ const Canvas = () => {
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (selectionRect) {
-      setSelectionRect((prev) => ({
-        ...prev,
-        width: event.clientX - prev.x,
-        height: event.clientY - prev.y,
-      }));
-    }
 
     if (!drawing || !currentElement) return;
     const { offsetX, offsetY } = event.nativeEvent;
@@ -196,11 +180,6 @@ const Canvas = () => {
   };
 
   const handleMouseUp = () => {
-    const selectedElements = elements.filter((el) =>
-      isElementInsideSelection(el, selectionRect)
-    );
-    setSelectedElements(selectedElements);
-    setSelectionRect(null); // Clear the selection box
 
     if (currentElement) {
       setElements((prev) => [...prev, currentElement]);
@@ -208,16 +187,6 @@ const Canvas = () => {
     }
     setCurrentElement(null);
     setDrawing(false);
-  };
-
-  const isElementInsideSelection = (element, selectionRect) => {
-    const elBounds = getBoundingBox(element);
-    return (
-      elBounds.x + elBounds.width > selectionRect.x &&
-      elBounds.x < selectionRect.x + selectionRect.width &&
-      elBounds.y + elBounds.height > selectionRect.y &&
-      elBounds.y < selectionRect.y + selectionRect.height
-    );
   };
 
   const redraw = () => {
@@ -298,16 +267,6 @@ const Canvas = () => {
             });
           }
           break;
-      }
-
-      // Highlight selected elements
-      if (selectedElements.some((selected) => selected.id === element.id)) {
-        context.beginPath();
-        context.rect(x, y, width, height);
-        context.lineWidth = 2;
-        context.strokeStyle = "blue"; // Or any color for selection highlight
-        context.setLineDash([5, 5]); // Dashed border for selection
-        context.stroke();
       }
     });
 
@@ -422,6 +381,7 @@ const Canvas = () => {
             setFontSize={setFontSize}
             textAlignment={textAlignment}
             setTextAlignment={setTextAlignment}
+            activeTool={tool}
           />
         </div>
       )}

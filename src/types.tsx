@@ -33,3 +33,16 @@ export type Cursor = {
   x: number;
   y: number;
 };
+
+export interface TextElement {
+  id: number;
+  x: number;
+  y: number;
+  content: string;
+  options: {
+    fontFamily: string;
+    fontSize: string;
+    color: string;
+    textAlign: string;
+  };
+}

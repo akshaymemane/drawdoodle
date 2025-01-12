@@ -1,4 +1,4 @@
-import { Cursor, Element, ToolType } from "@/types";
+import { Cursor, Element, TextElement, ToolType } from "@/types";
 import { useEffect, useRef, useState } from "react";
 import rough from "roughjs/bin/rough";
 import Stylebar from "./Stylebar";
@@ -26,7 +26,7 @@ const Canvas = () => {
   const [fontSize, setFontSize] = useState<string>("none");
   const [textAlignment, setTextAlignment] = useState<string>("none");
 
-  const [texts, setTexts] = useState<any[]>([]);
+  const [texts, setTexts] = useState<TextElement[]>([]);
 
   const [penPath, setPenPath] = useState<{ x: number; y: number }[]>([]);
   const [cursors, setCursors] = useState<Cursor[]>([]); // State to store cursor positions
@@ -145,7 +145,6 @@ const Canvas = () => {
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-
     if (!drawing || !currentElement) return;
     const { offsetX, offsetY } = event.nativeEvent;
 
@@ -180,7 +179,6 @@ const Canvas = () => {
   };
 
   const handleMouseUp = () => {
-
     if (currentElement) {
       setElements((prev) => [...prev, currentElement]);
       sendMessage(JSON.stringify(currentElement)); // Send the new element to the server
@@ -292,7 +290,6 @@ const Canvas = () => {
     setElements([]);
     setTexts([]);
     redraw();
-    sendMessage(JSON.stringify({ type: "clear" })); // Notify all clients to clear their canvases
   };
 
   //control panel

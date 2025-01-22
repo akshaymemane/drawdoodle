@@ -1,4 +1,5 @@
 import { Cursor, Element, TextElement, ToolType } from "@/types";
+import getStroke from "perfect-freehand";
 import { useEffect, useRef, useState } from "react";
 import rough from "roughjs/bin/rough";
 import Stylebar from "./Stylebar";
@@ -147,6 +148,8 @@ const Canvas = () => {
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!drawing || !currentElement) return;
+
+    setDrawing(true);
     const { offsetX, offsetY } = event.nativeEvent;
 
     // Update cursor position to the server
@@ -160,11 +163,22 @@ const Canvas = () => {
     );
 
     if (tool === "pen") {
+      const newPath = [...currentElement.penPath!, { x: offsetX, y: offsetY }];
+      const smoothPath = getStroke(newPath, {
+        size: 8, // Make the stroke thicker
+        thinning: 0.8, // Exaggerate the tapering effect
+        smoothing: 0.9, // Ensure the stroke is smooth
+        streamline: 0.7, // Reduce jitter by smoothing input
+        simulatePressure: true, // Adds pressure-based tapering
+        easing: (t) => t * (2 - t), // Adds a curve to smoothing
+      });
+
       setCurrentElement({
         ...currentElement,
         endX: offsetX,
         endY: offsetY,
-        penPath: [...currentElement.penPath!, { x: offsetX, y: offsetY }],
+        penPath: newPath,
+        smoothPath, // Save the smooth path
       });
     } else {
       const width = offsetX - currentElement.x;
@@ -215,6 +229,7 @@ const Canvas = () => {
         penPath,
         strokeStyle, // Use strokeStyle from the element
         opacity,
+        smoothPath,
       } = element;
       let options = {
         stroke,
@@ -253,19 +268,18 @@ const Canvas = () => {
           drawArrow(roughCanvas, x, y, endX, endY, options);
           break;
         case "pen":
-          if (penPath) {
-            penPath.forEach((point, index) => {
-              if (index > 0) {
-                const prevPoint = penPath[index - 1];
-                roughCanvas.line(
-                  prevPoint.x,
-                  prevPoint.y,
-                  point.x,
-                  point.y,
-                  options
-                );
+          if (smoothPath) {
+            context.beginPath();
+            smoothPath.forEach(([x, y], index) => {
+              if (index === 0) {
+                context.moveTo(x, y);
+              } else {
+                context.lineTo(x, y);
               }
             });
+            context.closePath(); // Close the polygon
+            context.fillStyle = element.stroke || "black"; // Use fillStyle for polygon
+            context.fill(); // Fill the polygon to render the stroke
           }
           break;
       }
@@ -288,6 +302,31 @@ const Canvas = () => {
     //   context.fill();
     // });
   };
+
+  function quadraticInterpolation(points) {
+    const len = points.length;
+    if (len < 4) {
+      return "";
+    }
+    let [a, b, c] = points;
+    let result = `
+        M${a[0].toFixed(2)},${a[1].toFixed(2)}
+        Q${b[0].toFixed(2)},${b[1].toFixed(2)} ${average(b[0], c[0]).toFixed(
+      2
+    )},${average(b[1], c[1]).toFixed(2)}
+        T
+    `;
+    for (let i = 2, max = len - 1; i < max; i++) {
+      a = points[i];
+      b = points[i + 1];
+      result += `${average(a[0], b[0]).toFixed(2)},${average(
+        a[1],
+        b[1]
+      ).toFixed(2)} `;
+    }
+    result += "Z";
+    return result;
+  }
 
   const clearCanvas = () => {
     setElements([]);

@@ -2,33 +2,51 @@ import { Element } from "@/types";
 import { useState } from "react";
 
 export const useHistory = (initialState: Element[]) => {
-  const [index, setIndex] = useState(0);
-  const [history, setHistory] = useState([initialState]);
+  const [state, setState] = useState({
+    index: 0,
+    history: [initialState],
+  });
 
-  const setState = (
+  const setElements = (
     action: Element[] | ((current: Element[]) => Element[]),
     overwrite = false
   ) => {
-    const newState =
-      typeof action === "function" ? action(history[index]) : action;
-    if (overwrite) {
-      const historyCopy = [...history];
-      historyCopy[index] = newState;
-      setHistory(historyCopy);
-    } else {
-      const updatedState = [...history].slice(0, index + 1);
-      setHistory([...updatedState, newState]);
-      setIndex((prevState) => prevState + 1);
-    }
+    setState((prev) => {
+      const current = prev.history[prev.index];
+      const next = typeof action === "function" ? action(current) : action;
+
+      if (overwrite) {
+        const historyCopy = [...prev.history];
+        historyCopy[prev.index] = next;
+        return {
+          ...prev,
+          history: historyCopy,
+        };
+      }
+
+      const trimmedHistory = prev.history.slice(0, prev.index + 1);
+      const nextHistory = [...trimmedHistory, next];
+      return {
+        index: nextHistory.length - 1,
+        history: nextHistory,
+      };
+    });
   };
 
-  const undo = () => index > 0 && setIndex((prevState) => prevState - 1);
+  const undo = () =>
+    setState((prev) =>
+      prev.index > 0 ? { ...prev, index: prev.index - 1 } : prev
+    );
   const redo = () =>
-    index < history.length - 1 && setIndex((prevState) => prevState + 1);
+    setState((prev) =>
+      prev.index < prev.history.length - 1
+        ? { ...prev, index: prev.index + 1 }
+        : prev
+    );
 
   return {
-    elements: history[index],
-    setElements: setState,
+    elements: state.history[state.index],
+    setElements,
     undo,
     redo,
   };

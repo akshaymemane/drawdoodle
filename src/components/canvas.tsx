@@ -1,4 +1,4 @@
-import { Element, Point, StrokeStyle, TextItem, ToolType } from "@/types";
+import { Cursor, Element, Point, StrokeStyle, TextItem, ToolType } from "@/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import rough from "roughjs/bin/rough";
 import { Options } from "roughjs/bin/core";
@@ -61,7 +61,7 @@ const getTextBounds = (text: TextItem) => {
   };
 };
 
-const Canvas = () => {
+const Canvas = ({ boardId }: { boardId: string }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { elements = [], setElements, undo, redo } = useHistory([]);
 
@@ -79,6 +79,7 @@ const Canvas = () => {
   const [drawing, setDrawing] = useState(false);
   const [currentElement, setCurrentElement] = useState<Element | null>(null);
   const [texts, setTexts] = useState<TextItem[]>([]);
+  const [remoteCursors, setRemoteCursors] = useState<Cursor[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
@@ -100,7 +101,13 @@ const Canvas = () => {
     height: window.innerHeight,
   });
 
-  const { sendMessage, lastMessage } = useWebSocket();
+  const { sendMessage, lastMessage } = useWebSocket(boardId);
+  const applyingRemoteStateRef = useRef(false);
+  const syncTimeoutRef = useRef<number | null>(null);
+  const hasReceivedInitialStateRef = useRef(false);
+  const hasLocalChangesRef = useRef(false);
+  const localClientIdRef = useRef<string>("");
+  const lastCursorSentAtRef = useRef<number>(0);
 
   const toolsWithSidebar: ToolType[] = [
     "rectangle",
@@ -290,6 +297,7 @@ const Canvas = () => {
 
   const clearCanvas = useCallback(
     (broadcast = true) => {
+      hasLocalChangesRef.current = true;
       setElements([]);
       setTexts([]);
       setSelectedIds([]);
@@ -311,6 +319,7 @@ const Canvas = () => {
   const deleteSelectedElements = useCallback(
     (broadcast = true) => {
       if (!selectedIds.length && !selectedTextId) return;
+      hasLocalChangesRef.current = true;
       const idsToDelete = new Set(selectedIds);
       setElements((prev) => prev.filter((element) => !idsToDelete.has(element.id)));
       setSelectedIds([]);
@@ -637,6 +646,17 @@ const Canvas = () => {
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const point = toWorldPoint(event);
+    const now = Date.now();
+    if (now - lastCursorSentAtRef.current > 40) {
+      lastCursorSentAtRef.current = now;
+      sendMessage(
+        JSON.stringify({
+          type: "cursor",
+          x: point.x,
+          y: point.y,
+        })
+      );
+    }
 
     if (draggingTextId && dragTextOrigin) {
       const dx = point.x - dragTextOrigin.x;
@@ -699,7 +719,18 @@ const Canvas = () => {
     );
   };
 
-  const handleMouseUp = () => {
+  const finalizeInteraction = useCallback((releasePoint?: Point) => {
+    const hasActiveInteraction =
+      draggingTextId ||
+      selectionRect ||
+      currentElement ||
+      drawing ||
+      isTransforming.moving ||
+      isTransforming.scaling ||
+      isTransforming.rotating;
+
+    if (!hasActiveInteraction) return;
+
     if (draggingTextId) {
       setDraggingTextId(null);
       setDragTextOrigin(null);
@@ -707,27 +738,80 @@ const Canvas = () => {
     }
 
     if (selectionRect) {
+      const finalSelectionRect =
+        releasePoint && tool === "select"
+          ? {
+              ...selectionRect,
+              width: releasePoint.x - selectionRect.x,
+              height: releasePoint.y - selectionRect.y,
+            }
+          : selectionRect;
       const selected = elements.filter((element) =>
-        isElementInSelection(element, selectionRect)
+        isElementInSelection(element, finalSelectionRect)
       );
       setSelectedIds(selected.map((element) => element.id));
       setSelectedTextId(null);
       setSelectionRect(null);
     } else if (currentElement) {
+      let finalizedElement = currentElement;
+
+      if (releasePoint) {
+        const point = releasePoint;
+        if (currentElement.tool === "pen") {
+          const currentPath = currentElement.penPath ?? [];
+          const lastPoint = currentPath[currentPath.length - 1];
+          const hasMoved =
+            !lastPoint || lastPoint.x !== point.x || lastPoint.y !== point.y;
+          finalizedElement = {
+            ...currentElement,
+            endX: point.x,
+            endY: point.y,
+            penPath: hasMoved ? [...currentPath, point] : currentPath,
+          };
+        } else {
+          finalizedElement = {
+            ...currentElement,
+            endX: point.x,
+            endY: point.y,
+            width: point.x - currentElement.x,
+            height: point.y - currentElement.y,
+          };
+        }
+      }
+
       const shouldAddElement =
-        currentElement.tool === "pen"
-          ? (currentElement.penPath?.length ?? 0) > 1
-          : Math.hypot(currentElement.width, currentElement.height) > 6;
+        finalizedElement.tool === "pen"
+          ? (finalizedElement.penPath?.length ?? 0) > 1
+          : Math.hypot(finalizedElement.width, finalizedElement.height) > 6;
 
       if (shouldAddElement) {
-        setElements((prev) => [...prev, currentElement]);
-        sendMessage(JSON.stringify(currentElement));
+        hasLocalChangesRef.current = true;
+        setElements((prev) => [...prev, finalizedElement]);
+        sendMessage(JSON.stringify(finalizedElement));
       }
     }
 
     setCurrentElement(null);
     setDrawing(false);
     setIsTransforming({ moving: false, scaling: false, rotating: false });
+  }, [
+    currentElement,
+    draggingTextId,
+    drawing,
+    elements,
+    isElementInSelection,
+    isTransforming.moving,
+    isTransforming.rotating,
+    isTransforming.scaling,
+    selectionRect,
+    sendMessage,
+    setElements,
+    tool,
+  ]);
+
+  const handleMouseUp = (event?: React.MouseEvent<HTMLCanvasElement>) => {
+    const releasePoint = event ? toWorldPoint(event) : undefined;
+    finalizeInteraction(releasePoint);
   };
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -749,6 +833,7 @@ const Canvas = () => {
       },
     };
 
+    hasLocalChangesRef.current = true;
     setTexts((prev) => [...prev, text]);
   };
 
@@ -761,6 +846,7 @@ const Canvas = () => {
   };
 
   const handleTextEdit = (id: string, newContent: string) => {
+    hasLocalChangesRef.current = true;
     setTexts((prev) =>
       prev.map((text) =>
         text.id === id ? { ...text, content: newContent } : text
@@ -799,6 +885,39 @@ const Canvas = () => {
   useEffect(() => {
     redraw();
   }, [redraw]);
+
+  useEffect(() => {
+    if (!boardId) return;
+
+    if (applyingRemoteStateRef.current) {
+      applyingRemoteStateRef.current = false;
+      return;
+    }
+
+    if (!hasReceivedInitialStateRef.current && !hasLocalChangesRef.current) {
+      return;
+    }
+
+    if (syncTimeoutRef.current) {
+      window.clearTimeout(syncTimeoutRef.current);
+    }
+
+    syncTimeoutRef.current = window.setTimeout(() => {
+      sendMessage(
+        JSON.stringify({
+          type: "state_sync",
+          boardId,
+          state: { elements, texts },
+        })
+      );
+    }, 120);
+
+    return () => {
+      if (syncTimeoutRef.current) {
+        window.clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, [boardId, elements, sendMessage, texts]);
 
   useEffect(() => {
     const keyboardFunction = (event: KeyboardEvent) => {
@@ -875,12 +994,100 @@ const Canvas = () => {
   }, []);
 
   useEffect(() => {
+    const onWindowMouseUp = (event: MouseEvent) => {
+      finalizeInteraction(toWorldFromClient(event.clientX, event.clientY));
+    };
+    const onWindowBlur = () => {
+      finalizeInteraction();
+    };
+
+    window.addEventListener("mouseup", onWindowMouseUp);
+    window.addEventListener("blur", onWindowBlur);
+    return () => {
+      window.removeEventListener("mouseup", onWindowMouseUp);
+      window.removeEventListener("blur", onWindowBlur);
+    };
+  }, [finalizeInteraction, toWorldFromClient]);
+
+  useEffect(() => {
     if (!lastMessage || typeof lastMessage !== "object") return;
 
-    const payload = lastMessage as Partial<Element> & {
+    const payload = lastMessage as {
       type?: string;
+      state?: {
+        elements?: Element[];
+        texts?: TextItem[];
+      };
+      boardId?: string;
       ids?: string[];
+      id?: string;
+      tool?: string;
+      x?: number;
+      y?: number;
+      clientId?: string;
     };
+
+    if (
+      (payload.type === "init" || payload.type === "state_sync") &&
+      payload.state
+    ) {
+      if (payload.type === "init" && hasLocalChangesRef.current) {
+        hasReceivedInitialStateRef.current = true;
+        if (payload.clientId) {
+          localClientIdRef.current = payload.clientId;
+        }
+        return;
+      }
+
+      hasReceivedInitialStateRef.current = true;
+      if (payload.clientId) {
+        localClientIdRef.current = payload.clientId;
+      }
+      applyingRemoteStateRef.current = true;
+      hasLocalChangesRef.current = false;
+      setElements(payload.state.elements ?? []);
+      setTexts(payload.state.texts ?? []);
+      return;
+    }
+
+    if (
+      payload.type === "cursor" &&
+      typeof payload.x === "number" &&
+      typeof payload.y === "number" &&
+      payload.clientId &&
+      payload.clientId !== localClientIdRef.current
+    ) {
+      const clientId = payload.clientId;
+      const x = payload.x;
+      const y = payload.y;
+      setRemoteCursors((prev) => {
+        const existing = prev.find((cursor) => cursor.id === clientId);
+        if (existing) {
+          return prev.map((cursor) =>
+            cursor.id === clientId
+              ? { ...cursor, x, y }
+              : cursor
+          );
+        }
+        return [
+          ...prev,
+          {
+            id: clientId,
+            x,
+            y,
+            label: "Anonymous",
+          },
+        ];
+      });
+      return;
+    }
+
+    if (payload.type === "cursor_leave" && payload.clientId) {
+      setRemoteCursors((prev) =>
+        prev.filter((cursor) => cursor.id !== payload.clientId)
+      );
+      return;
+    }
 
     if (payload.type === "clear") {
       clearCanvas(false);
@@ -916,6 +1123,10 @@ const Canvas = () => {
     if (tool === "select") return "default";
     return "crosshair";
   }, [isTransforming.moving, tool]);
+
+  useEffect(() => {
+    setRemoteCursors([]);
+  }, [boardId]);
 
   const editingScreenPoint = useMemo(() => {
     if (!editingElement) return null;
@@ -980,6 +1191,26 @@ const Canvas = () => {
         <div>`Double-click` shape to edit text</div>
         <div>`Cmd/Ctrl + Wheel` zooms</div>
       </div>
+
+      {remoteCursors.map((cursor) => {
+        const screen = toScreenPoint({ x: cursor.x, y: cursor.y });
+        return (
+          <div
+            key={cursor.id}
+            className="pointer-events-none fixed z-40"
+            style={{
+              left: screen.x,
+              top: screen.y,
+              transform: "translate(-2px, -2px)",
+            }}
+          >
+            <div className="h-3 w-3 rounded-full bg-blue-500 ring-2 ring-white" />
+            <div className="mt-1 rounded bg-blue-500 px-2 py-0.5 text-[10px] text-white">
+              {cursor.label ?? "Anonymous"}
+            </div>
+          </div>
+        );
+      })}
 
       <div className="flex-grow overflow-auto">
         {editingElement && editingScreenPoint && (
@@ -1093,8 +1324,8 @@ const Canvas = () => {
           style={{ cursor: canvasCursor, zIndex: 0, position: "relative" }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onMouseUp={(event) => handleMouseUp(event)}
+          onMouseLeave={() => handleMouseUp()}
           onWheel={handleWheel}
           onClick={handleCanvasClick}
           onDoubleClick={handleCanvasDoubleClick}

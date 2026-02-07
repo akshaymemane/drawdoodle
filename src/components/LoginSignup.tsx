@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaFacebook, FaGithub, FaGoogle, FaLinkedin } from "react-icons/fa";
+import { Chrome, Facebook, Github, Linkedin } from "lucide-react";
 
 const LoginSignup = () => {
   const [isActive, setIsActive] = useState(false);
@@ -25,16 +25,16 @@ const LoginSignup = () => {
             <h1 className="text-2xl font-bold mb-4">Create Account</h1>
             <div className="flex space-x-4 mb-6">
               <a href="#" className="icon">
-                <FaGoogle className="text-gray-600 hover:text-blue-600" />
+                <Chrome className="text-gray-600 hover:text-blue-600" />
               </a>
               <a href="#" className="icon">
-                <FaFacebook className="text-gray-600 hover:text-blue-600" />
+                <Facebook className="text-gray-600 hover:text-blue-600" />
               </a>
               <a href="#" className="icon">
-                <FaGithub className="text-gray-600 hover:text-blue-600" />
+                <Github className="text-gray-600 hover:text-blue-600" />
               </a>
               <a href="#" className="icon">
-                <FaLinkedin className="text-gray-600 hover:text-blue-600" />
+                <Linkedin className="text-gray-600 hover:text-blue-600" />
               </a>
             </div>
             <span className="text-sm mb-4">
@@ -71,16 +71,16 @@ const LoginSignup = () => {
             <h1 className="text-2xl font-bold mb-4">Sign In</h1>
             <div className="flex space-x-4 mb-6">
               <a href="#" className="icon">
-                <FaGoogle className="text-gray-600 hover:text-blue-600" />
+                <Chrome className="text-gray-600 hover:text-blue-600" />
               </a>
               <a href="#" className="icon">
-                <FaFacebook className="text-gray-600 hover:text-blue-600" />
+                <Facebook className="text-gray-600 hover:text-blue-600" />
               </a>
               <a href="#" className="icon">
-                <FaGithub className="text-gray-600 hover:text-blue-600" />
+                <Github className="text-gray-600 hover:text-blue-600" />
               </a>
               <a href="#" className="icon">
-                <FaLinkedin className="text-gray-600 hover:text-blue-600" />
+                <Linkedin className="text-gray-600 hover:text-blue-600" />
               </a>
             </div>
             <span className="text-sm mb-4">or use your email password</span>

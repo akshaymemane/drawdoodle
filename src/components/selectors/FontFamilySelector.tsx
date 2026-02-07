@@ -1,4 +1,4 @@
-import { CaseSensitive, Code, PencilLine } from "lucide-react"; // Import any icons you need
+import { CaseSensitive, PenLine, Type } from "lucide-react";
 import React from "react";
 
 interface FontFamilySelectorProps {
@@ -7,9 +7,9 @@ interface FontFamilySelectorProps {
 }
 
 const fontFamilies = [
-  { id: "Arial", icon: PencilLine },
-  { id: "Lucide", icon: CaseSensitive },
-  { id: "monospace", icon: Code },
+  { id: "Caveat", label: "Hand", icon: PenLine },
+  { id: "Patrick Hand", label: "Sketch", icon: CaseSensitive },
+  { id: "monospace", label: "Mono", icon: Type },
 ];
 
 const FontFamilySelector: React.FC<FontFamilySelectorProps> = ({
@@ -21,18 +21,20 @@ const FontFamilySelector: React.FC<FontFamilySelectorProps> = ({
       <h3 className="text-sm font-bold mb-2">Font Family</h3>
       <div className="flex space-x-2">
         {fontFamilies.map((item) => {
-          const Icon = item.icon; // Dynamically assign the icon component
+          const Icon = item.icon;
           return (
             <button
+              type="button"
               key={item.id}
               onClick={() => setFontFamily(item.id)}
-              className={`p-3 border rounded hover:bg-gray-400 bg-gray-700 ${
+              className={`p-3 border rounded-md ${
                 fontFamily === item.id
-                  ? "border-blue-500"
-                  : "border-transparent"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:bg-accent"
               }`}
             >
-              <Icon size={20} />
+              <Icon size={16} />
+              <span className="text-xs">{item.label}</span>
             </button>
           );
         })}

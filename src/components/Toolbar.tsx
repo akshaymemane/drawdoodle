@@ -1,6 +1,7 @@
 import { ToolType } from "@/types";
 import {
   Circle,
+  Download,
   Minus,
   MousePointer,
   MoveRight,
@@ -8,6 +9,7 @@ import {
   Square,
   Trash2,
   Type,
+  X,
 } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 
@@ -24,9 +26,15 @@ const Toolbar = ({
   activeTool = "select",
   setTool = () => {},
   clearCanvas = () => {},
+  deleteSelected = () => {},
+  exportPng = () => {},
+  hasSelection = false,
 }: {
   setTool: (tool: ToolType) => void;
   clearCanvas: () => void;
+  deleteSelected: () => void;
+  exportPng: () => void;
+  hasSelection: boolean;
   activeTool: Tool;
 }) => {
   const tools: { name: Tool; Icon: React.ComponentType }[] = [
@@ -40,13 +48,15 @@ const Toolbar = ({
   ];
 
   const buttonClass =
-    "hover:bg-gray-400 bg-gray-700 px-4 py-2 text-white rounded";
+    "inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors";
 
   const getActiveClass = (tool: Tool) =>
-    activeTool === tool ? "bg-blue-500" : "bg-gray-700";
+    activeTool === tool
+      ? "bg-primary text-primary-foreground border-primary"
+      : "";
 
   return (
-    <div className="flex justify-center items-center bg-gray-800 space-x-2 rounded p-4">
+    <div className="flex flex-wrap justify-center items-center gap-2 rounded-lg border border-border bg-background/85 p-3 backdrop-blur-sm shadow-sm">
       {tools.map(({ name, Icon }) => (
         <div key={name} className="group relative">
           <button
@@ -57,11 +67,26 @@ const Toolbar = ({
           >
             <Icon />
           </button>
-          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block text-sm bg-gray-700 text-white rounded px-2 py-1">
+          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block text-xs rounded border border-border bg-popover text-popover-foreground px-2 py-1">
             {name}
           </span>
         </div>
       ))}
+      <button
+        onClick={deleteSelected}
+        className={`${buttonClass} ${!hasSelection ? "opacity-50 cursor-not-allowed" : ""}`}
+        aria-label="Delete Selected"
+        disabled={!hasSelection}
+      >
+        <X />
+      </button>
+      <button
+        onClick={exportPng}
+        className={buttonClass}
+        aria-label="Export PNG"
+      >
+        <Download />
+      </button>
       <button
         onClick={clearCanvas}
         className={buttonClass}

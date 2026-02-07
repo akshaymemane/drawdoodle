@@ -20,13 +20,15 @@ const StrokeSelector: React.FC<StrokeSelectorProps> = ({
       <h3 className="text-sm font-bold mb-2">Stroke</h3>
       <div className="flex space-x-2">
         {strokeColors.map((key) => (
-          <div
+          <button
+            type="button"
             key={key.color}
-            className={`w-8 h-8 cursor-pointer border ${
-              stroke === key.color ? "border-blue-500" : "border-transparent"
+            className={`w-8 h-8 cursor-pointer rounded border ${
+              stroke === key.color ? "border-blue-500" : "border-border"
             }`}
             style={{ backgroundColor: key.color }}
             onClick={() => setStroke(key.color)}
+            aria-label={`Stroke ${key.id}`}
           />
         ))}
       </div>

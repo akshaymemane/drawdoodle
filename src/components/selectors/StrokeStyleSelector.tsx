@@ -15,13 +15,16 @@ const StrokeStyleSelector: React.FC<StrokeStyleSelectorProps> = ({
       <div className="flex space-x-2">
         {strokeStyles.map((style) => (
           <button
+            type="button"
             key={style}
-            className={`w-8 h-8 flex items-center justify-center border rounded ${
-              strokeStyle === style ? "bg-blue-500 text-white" : "bg-gray-700"
+            className={`w-14 h-8 text-xs flex items-center justify-center border rounded-md ${
+              strokeStyle === style
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card text-foreground border-border hover:bg-accent"
             }`}
             onClick={() => setStrokeStyle(style)}
           >
-            {style === "solid" ? "—" : style === "dashed" ? "-" : "···"}
+            {style}
           </button>
         ))}
       </div>

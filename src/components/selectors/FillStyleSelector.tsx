@@ -20,20 +20,21 @@ const FillStyleSelector: React.FC<FillStyleSelectorProps> = ({
   return (
     <div>
       <h3 className="text-sm font-bold mb-2">Fill Style</h3>
-      <div className="flex space-x-2">
+      <div className="grid grid-cols-2 gap-2">
         {fillStyleOptions.map((fill) => (
-          <div
+          <button
+            type="button"
             key={fill.style}
-            className={`w-8 h-8 flex items-center justify-center border rounded ${
+            className={`w-full px-2 py-1 text-xs border rounded-md ${
               fillStyle === fill.style
-                ? "bg-blue-500 text-white"
-                : "bg-gray-700"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card text-foreground border-border hover:bg-accent"
             }`}
-            style={{ backgroundColor: fill.style }}
             onClick={() => setFillStyle(fill.style)}
+            title={fill.style}
           >
-            {fill.id}
-          </div>
+            {fill.style.replace("-", " ")}
+          </button>
         ))}
       </div>
     </div>

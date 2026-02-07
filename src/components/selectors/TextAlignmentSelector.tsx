@@ -21,13 +21,16 @@ const TextAlignmentSelector: React.FC<TextAlignmentSelectorProps> = ({
       <h3 className="text-sm font-bold mb-2">Text Align</h3>
       <div className="flex space-x-2">
         {textAlignmentOptions.map((item) => {
-          const Icon = item.icon; // Dynamically assign the icon component
+          const Icon = item.icon;
           return (
             <button
+              type="button"
               key={item.id}
               onClick={() => setTextAlign(item.id)}
-              className={`p-3 border rounded hover:bg-gray-400 bg-gray-700 ${
-                textAlign === item.id ? "border-blue-500" : "border-transparent"
+              className={`p-3 border rounded-md ${
+                textAlign === item.id
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:bg-accent"
               }`}
             >
               <Icon size={20} />

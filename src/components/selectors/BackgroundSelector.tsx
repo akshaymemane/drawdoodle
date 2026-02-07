@@ -20,15 +20,26 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
       <h3 className="text-sm font-bold mb-2">Background</h3>
       <div className="flex space-x-2">
         {backgroundColors.map((key) => (
-          <div
+          <button
+            type="button"
             key={key.color}
-            className={`w-8 h-8 cursor-pointer border ${
+            className={`w-8 h-8 cursor-pointer rounded border ${
               background === key.color
                 ? "border-blue-500"
-                : "border-transparent"
+                : "border-border"
             }`}
-            style={{ backgroundColor: key.color }}
+            style={{
+              backgroundColor: key.color === "none" ? "transparent" : key.color,
+              backgroundImage:
+                key.color === "none"
+                  ? "linear-gradient(45deg,#d4d4d8 25%, transparent 25%), linear-gradient(-45deg,#d4d4d8 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d4d4d8 75%), linear-gradient(-45deg, transparent 75%, #d4d4d8 75%)"
+                  : undefined,
+              backgroundSize: key.color === "none" ? "10px 10px" : undefined,
+              backgroundPosition:
+                key.color === "none" ? "0 0, 0 5px, 5px -5px, -5px 0px" : undefined,
+            }}
             onClick={() => setBackground(key.color)}
+            aria-label={`Background ${key.id}`}
           />
         ))}
       </div>

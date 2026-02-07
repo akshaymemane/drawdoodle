@@ -6,9 +6,9 @@ interface FontSizeSelectorProps {
 }
 
 const fontSizes = [
-  { id: "1rem", icon: "S" },
-  { id: "1.5rem", icon: "M" },
-  { id: "2rem", icon: "L" },
+  { id: "1rem", icon: "Small" },
+  { id: "1.5rem", icon: "Medium" },
+  { id: "2rem", icon: "Large" },
 ];
 
 const FontSizeSelector: React.FC<FontSizeSelectorProps> = ({
@@ -22,10 +22,13 @@ const FontSizeSelector: React.FC<FontSizeSelectorProps> = ({
         {fontSizes.map((item) => {
           return (
             <button
+              type="button"
               key={item.id}
               onClick={() => setFontSize(item.id)}
-              className={`p-3 border rounded hover:bg-gray-400 bg-gray-700 ${
-                fontSize === item.id ? "border-blue-500" : "border-transparent"
+              className={`px-2 py-1 text-xs border rounded-md ${
+                fontSize === item.id
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:bg-accent"
               }`}
             >
               {item.icon}

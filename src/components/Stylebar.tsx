@@ -53,10 +53,8 @@ const Stylebar: React.FC<StylebarProps> = ({
 }) => {
   const isTextToolActive = activeTool === "text";
 
-  console.log("Active Tool:", activeTool);
-
   return (
-    <div className="p-4 bg-gray-800 text-white rounded-lg shadow-md space-y-4">
+    <div className="w-56 p-3 bg-background/90 text-foreground rounded-lg border border-border shadow-sm space-y-4 backdrop-blur-sm">
       <StrokeSelector stroke={stroke} setStroke={setStroke} />
       <BackgroundSelector
         background={backgroundColor}

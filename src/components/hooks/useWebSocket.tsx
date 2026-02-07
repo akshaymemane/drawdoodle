@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws";
+type WsPayload = unknown;
 
 const useWebSocket = () => {
   const ws = useRef<WebSocket | null>(null);
-  const [lastMessage, setLastMessage] = useState<any>(null);
+  const [lastMessage, setLastMessage] = useState<WsPayload>(null);
 
   useEffect(() => {
     ws.current = new WebSocket(WS_URL);
@@ -15,8 +16,7 @@ const useWebSocket = () => {
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setLastMessage(data); // Save the latest message
-      //   console.log("Received:", data);
+      setLastMessage(data);
     };
 
     ws.current.onerror = (event) => {
@@ -30,9 +30,9 @@ const useWebSocket = () => {
     return () => {
       ws.current?.close();
     };
-  }, [WS_URL]);
+  }, []);
 
-  const sendMessage = (message: any) => {
+  const sendMessage = (message: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(message);
     } else {

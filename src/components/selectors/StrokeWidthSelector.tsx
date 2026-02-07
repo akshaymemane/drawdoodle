@@ -15,9 +15,12 @@ const StrokeWidthSelector: React.FC<StrokeWidthSelectorProps> = ({
       <div className="flex space-x-2">
         {strokeWidthOptions.map((width) => (
           <button
+            type="button"
             key={width}
-            className={`w-8 h-8 flex items-center justify-center border rounded ${
-              strokeWidth === width ? "bg-blue-500 text-white" : "bg-gray-700"
+            className={`w-8 h-8 flex items-center justify-center border rounded-md ${
+              strokeWidth === width
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card text-foreground border-border hover:bg-accent"
             }`}
             onClick={() => setStrokeWidth(width)}
           >

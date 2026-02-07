@@ -5,6 +5,7 @@ const App = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Canvas />
+      {/* <LoginSignup /> */}
     </ThemeProvider>
   );
 };
